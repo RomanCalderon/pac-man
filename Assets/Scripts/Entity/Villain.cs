@@ -51,7 +51,7 @@ public class Villain : MonoBehaviour
         else
         {
             PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
-            m_updatePositionCooler = ( 10f / m_movementSpeed );
+            m_updatePositionCooler = ( 11f / m_movementSpeed );
         }
     }
 
