@@ -30,7 +30,6 @@ public class Grid : MonoBehaviour
     {
         gridData = GridDataReader.ReadData ( gridConfigFile );
         nodeData = NodeDataReader.ReadData ( nodeConfigFile );
-        Nodes = new List<Node> ();
 
         CreateGrid ( gridData, nodeData );
     }
@@ -43,10 +42,11 @@ public class Grid : MonoBehaviour
         {
             throw new Exception ( "Grid data is null." );
         }
-
+        
         NodeArray = new Node [ gridData.Size.X, gridData.Size.Y ];
         GridSizeX = gridData.Size.X;
         GridSizeY = gridData.Size.Y;
+        Nodes = new List<Node> ();
 
         Debug.Log ( "gridData.Size.X = " + gridData.Size.X );
         Debug.Log ( "gridData.Size.Y = " + gridData.Size.Y );
@@ -60,7 +60,7 @@ public class Grid : MonoBehaviour
                     throw new Exception ( "nodeData is null." );
                 }
 
-                Vector3 worldPos = new Vector3 ( x * gridData.Spacing.X + gridData.Offset.X, 0, y * gridData.Spacing.Y + gridData.Offset.Y );
+                Vector3 worldPos = new Vector3 ( x * gridData.Spacing.X + gridData.Offset.X, y * gridData.Spacing.Y + gridData.Offset.Y, 0 );
                 NodeArray [ x, y ] = new Node ( x, y, worldPos, nodeData [ x, y ] );
                 Nodes.Add ( NodeArray [ x, y ] );
             }
@@ -92,7 +92,7 @@ public class Grid : MonoBehaviour
     public Node NodeFromWorldPoint ( Vector3 worldPosition )
     {
         int xIndex = Mathf.RoundToInt ( ( worldPosition.x - gridData.Offset.X ) / gridData.Spacing.X );
-        int yIndex = Mathf.RoundToInt ( ( worldPosition.z - gridData.Offset.Y ) / gridData.Spacing.Y );
+        int yIndex = Mathf.RoundToInt ( ( worldPosition.y - gridData.Offset.Y ) / gridData.Spacing.Y );
         return NodeArray [ xIndex, yIndex ];
     }
     

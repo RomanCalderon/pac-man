@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Player : MonoBehaviour
 {
     [SerializeField]
@@ -11,19 +12,24 @@ public class Player : MonoBehaviour
     private float m_updatePositionCooler;
 
     [SerializeField]
-    private SpriteRenderer m_spriteRenderer;
+    private SpriteRenderer m_spriteRenderer = null;
     [SerializeField]
-    private Animator m_animator;
+    private Animator m_animator = null;
+    private BoxCollider2D m_boxCollider = null;
 
     private void Awake ()
     {
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
         Debug.Assert ( m_animator != null );
+        Debug.Assert ( m_boxCollider != null );
+
+        m_boxCollider = GetComponent<BoxCollider2D> ();
 
         Node startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
+        Node.NodeType [] invalidNodeTypes = new Node.NodeType [] { Node.NodeType.WALL, Node.NodeType.VILLAIN_WALL };
+        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT, invalidNodeTypes );
         transform.position = startingNode.WorldPosition;
-        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT );
     }
 
     // Start is called before the first frame update

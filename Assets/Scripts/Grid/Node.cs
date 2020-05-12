@@ -12,7 +12,8 @@ public class Node : IHeapItem<Node>
         PLAYER_SPAWN = 3,
         VILLAIN_SPAWN = 4,
         LOOP_POINT = 5,
-        BIG_DOT = 6
+        BIG_DOT = 6,
+        VILLAIN_WALL = 7
     }
 
     public int GridXPos { get; private set; }
@@ -56,6 +57,10 @@ public class Node : IHeapItem<Node>
         WallConnections = new List<Node> ();
     }
 
+    /// <summary>
+    /// Assigns references to all neighboring Nodes.
+    /// </summary>
+    /// <param name="grid">The grid of Nodes.</param>
     public void AssignNeighbors ( Node [,] grid )
     {
         // Left node
@@ -80,6 +85,27 @@ public class Node : IHeapItem<Node>
         }
     }
 
+    /// <summary>
+    /// Returns the distance between this Node and Node <paramref name="node"/>.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public int GetDistance ( Node node )
+    {
+        int distX = Mathf.Abs ( GridXPos - node.GridXPos );
+        int distY = Mathf.Abs ( GridYPos - node.GridYPos );
+
+        if ( distX > distY )
+        {
+            return 14 * distY + 10 * ( distX - distY );
+        }
+        return 14 * distX + 10 * ( distY - distX );
+    }
+
+    /// <summary>
+    /// Returns the total number of neighboring Nodes.
+    /// </summary>
+    /// <returns></returns>
     public int GetNeighborCount ()
     {
         int total = 0;
@@ -104,6 +130,11 @@ public class Node : IHeapItem<Node>
         return total;
     }
 
+    /// <summary>
+    /// Returns the total number of neighboring Nodes of type <paramref name="nodeType"/>.
+    /// </summary>
+    /// <param name="nodeType">The type of Node to compare to.</param>
+    /// <returns></returns>
     public int GetNeighborCount ( NodeType nodeType )
     {
         int total = 0;
@@ -128,6 +159,10 @@ public class Node : IHeapItem<Node>
         return total;
     }
 
+    /// <summary>
+    /// Returns a list of all neighboring Nodes.
+    /// </summary>
+    /// <returns></returns>
     public List<Node> GetNeighbors ()
     {
         List<Node> neighbors = new List<Node> ();
@@ -154,7 +189,7 @@ public class Node : IHeapItem<Node>
 
     public override string ToString ()
     {
-        return string.Format ( "Node[{0},{1}]", GridXPos, GridYPos );
+        return string.Format ( "Node[{0},{1}] | Type:{2}", GridXPos, GridYPos, Type.ToString() );
     }
 
     public int HeapIndex

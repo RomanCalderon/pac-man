@@ -6,17 +6,18 @@ public class Villain : MonoBehaviour
 {
     [SerializeField]
     private Grid m_grid = null;
-    private EntityMover m_villainEntity = null;
+    [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
-    private float m_updatePositionCooler;
     [SerializeField]
-    private EntityMover.Directions m_startDirection = EntityMover.Directions.RIGHT;
+    private float m_pathUpdateInterval = 10.0f;
+    private float m_updatePathRequestCooler;
 
     [SerializeField]
-    private SpriteRenderer m_spriteRenderer;
-
+    private SpriteRenderer m_spriteRenderer = null;
     [SerializeField]
-    private Transform m_target = null;
+    private Color m_color = Color.white;
+    
+    private Node m_targetNode = null;
     private Coroutine pathCoroutine = null;
     private Vector3 [] path = null;
     private int targetIndex = 0;
@@ -28,13 +29,13 @@ public class Villain : MonoBehaviour
 
         Node startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
         transform.position = startingNode.WorldPosition;
-        m_villainEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT );
+        m_spriteRenderer.color = m_color;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
-        PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
+        m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
 
     void Update ()
@@ -42,20 +43,33 @@ public class Villain : MonoBehaviour
         MovementUpdater ();
     }
 
-    private void MovementUpdater ()
+    public void SetTarget ( Node targetNode )
     {
-        if ( m_updatePositionCooler > 0 )
+        m_targetNode = targetNode;
+
+        if ( targetNode != null )
         {
-            m_updatePositionCooler -= Time.deltaTime;
-        }
-        else
-        {
-            PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
-            m_updatePositionCooler = ( 11f / m_movementSpeed );
+            PathRequestManager.RequestPath ( transform.position, m_targetNode.WorldPosition, OnPathFound );
         }
     }
 
-    public void OnPathFound ( Vector3 [] newPath, bool pathSuccessful )
+    private void MovementUpdater ()
+    {
+        if ( m_targetNode != null )
+        {
+            if ( m_updatePathRequestCooler > 0 )
+            {
+                m_updatePathRequestCooler -= Time.deltaTime;
+            }
+            else
+            {
+                PathRequestManager.RequestPath ( transform.position, m_targetNode.WorldPosition, OnPathFound );
+                m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
+            }
+        }
+    }
+
+    private void OnPathFound ( Vector3 [] newPath, bool pathSuccessful )
     {
         if ( pathSuccessful )
         {
@@ -95,13 +109,6 @@ public class Villain : MonoBehaviour
 
     private void OnDrawGizmos ()
     {
-        if ( m_villainEntity != null )
-        {
-            Gizmos.color = Color.red;
-            Vector3 playerNodePosition = m_villainEntity.GetCurrentPosition ().WorldPosition;
-            Gizmos.DrawCube ( playerNodePosition, Vector3.one * 0.6f );
-        }
-
         if ( path != null )
         {
             for ( int i = targetIndex; i < path.Length; i++ )

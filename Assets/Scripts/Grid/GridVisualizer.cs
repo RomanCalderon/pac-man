@@ -157,25 +157,28 @@ public class GridVisualizer : MonoBehaviour
             switch ( n.Type )
             {
                 case Node.NodeType.DOT:
-                    Gizmos.color = Color.white;     //0
+                    Gizmos.color = Color.white;     //0 - DOT
                     break;
                 case Node.NodeType.WALL:
-                    Gizmos.color = Color.blue;      //1
+                    Gizmos.color = Color.blue;      //1 - WALL
                     break;
                 case Node.NodeType.EMPTY:
-                    Gizmos.color = Color.black;     //2
+                    Gizmos.color = Color.black;     //2 - EMPTY
                     break;
                 case Node.NodeType.PLAYER_SPAWN:
-                    Gizmos.color = Color.yellow;    //3
+                    Gizmos.color = Color.yellow;    //3 - PLAYER_SPAWN
                     break;
                 case Node.NodeType.VILLAIN_SPAWN:
-                    Gizmos.color = Color.red;       //4
+                    Gizmos.color = Color.red;       //4 - VILLAIN_SPAWN
                     break;
                 case Node.NodeType.LOOP_POINT:
-                    Gizmos.color = Color.cyan;      //5
+                    Gizmos.color = Color.cyan;      //5 - LOOP_POINT
                     break;
                 case Node.NodeType.BIG_DOT:
-                    Gizmos.color = Color.green;     //6
+                    Gizmos.color = Color.green;     //6 - BIG_DOT
+                    break;
+                case Node.NodeType.VILLAIN_WALL:    //7 - VILLAIN_WALL
+                    Gizmos.color = Color.grey;
                     break;
                 default:
                     break;

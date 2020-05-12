@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,11 +16,13 @@ public class EntityMover : Entity
     public bool m_isMoving { get; private set; }
     private Directions m_direction;
     private Directions m_desiredDirection;
+    private Node.NodeType [] m_invalidNodeTypes;
 
-    public EntityMover ( Node defaultPosition, Directions defaultDirection ) : base ( defaultPosition )
+    public EntityMover ( Node defaultPosition, Directions defaultDirection, Node.NodeType[] invalidNodeTypes ) : base ( defaultPosition )
     {
         m_direction = defaultDirection;
         m_desiredDirection = defaultDirection;
+        m_invalidNodeTypes = invalidNodeTypes;
     }
 
     public Node GetCurrentPosition ()
@@ -79,6 +82,7 @@ public class EntityMover : Entity
 
     public bool IsValidStep ( Node stepNode )
     {
-        return stepNode != null && stepNode.Type != Node.NodeType.WALL;
+        bool invalidStep = m_invalidNodeTypes.Contains ( stepNode.Type );
+        return stepNode != null && !invalidStep;
     }
 }
