@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Node
+public class Node : IHeapItem<Node>
 {
     public enum NodeType
     {
@@ -10,7 +10,7 @@ public class Node
         WALL = 1,
         EMPTY = 2,
         PLAYER_SPAWN = 3,
-        GHOST_SPAWN = 4,
+        VILLAIN_SPAWN = 4,
         LOOP_POINT = 5,
         BIG_DOT = 6
     }
@@ -24,6 +24,24 @@ public class Node
     public Node UpNode { get; private set; }
     public Node DownNode { get; private set; }
     public List<Node> WallConnections { get; private set; }
+    public bool IsWalkable
+    {
+        get
+        {
+            return Type != NodeType.WALL;
+        }
+    }
+    public int gCost;
+    public int hCost;
+    public int fCost
+    {
+        get
+        {
+            return gCost + hCost;
+        }
+    }
+    public Node Parent;
+    int heapIndex;
 
     public Node ( int x, int y, Vector3 worldPos, int type )
     {
@@ -110,8 +128,54 @@ public class Node
         return total;
     }
 
+    public List<Node> GetNeighbors ()
+    {
+        List<Node> neighbors = new List<Node> ();
+
+        if ( UpNode != null )
+        {
+            neighbors.Add ( UpNode );
+        }
+        if ( RightNode != null )
+        {
+            neighbors.Add ( RightNode );
+        }
+        if ( DownNode != null )
+        {
+            neighbors.Add ( DownNode );
+        }
+        if ( LeftNode != null )
+        {
+            neighbors.Add ( LeftNode );
+        }
+
+        return neighbors;
+    }
+
     public override string ToString ()
     {
         return string.Format ( "Node[{0},{1}]", GridXPos, GridYPos );
+    }
+
+    public int HeapIndex
+    {
+        get
+        {
+            return heapIndex;
+        }
+        set
+        {
+            heapIndex = value;
+        }
+    }
+
+    public int CompareTo ( Node nodeToCompare )
+    {
+        int compare = fCost.CompareTo ( nodeToCompare.fCost );
+        if ( compare == 0 )
+        {
+            compare = hCost.CompareTo ( nodeToCompare.hCost );
+        }
+        return -compare;
     }
 }

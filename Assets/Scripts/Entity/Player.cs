@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
 
     private void Awake ()
     {
+        Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
         Debug.Assert ( m_animator != null );
     }
@@ -90,7 +91,7 @@ public class Player : MonoBehaviour
     {
         if ( m_playerEntity != null )
         {
-            Gizmos.color = Color.magenta;
+            Gizmos.color = Color.white;
             Vector3 playerNodePosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
             Gizmos.DrawCube ( playerNodePosition, Vector3.one * 0.6f );
         }

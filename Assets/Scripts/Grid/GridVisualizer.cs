@@ -168,7 +168,7 @@ public class GridVisualizer : MonoBehaviour
                 case Node.NodeType.PLAYER_SPAWN:
                     Gizmos.color = Color.yellow;    //3
                     break;
-                case Node.NodeType.GHOST_SPAWN:
+                case Node.NodeType.VILLAIN_SPAWN:
                     Gizmos.color = Color.red;       //4
                     break;
                 case Node.NodeType.LOOP_POINT:

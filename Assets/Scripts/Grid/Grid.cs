@@ -16,6 +16,13 @@ public class Grid : MonoBehaviour
     public Node [,] NodeArray { get; private set; } = null;
     public int GridSizeX { get; private set; }
     public int GridSizeY { get; private set; }
+    public int MaxSize
+    {
+        get
+        {
+            return GridSizeX * GridSizeY;
+        }
+    }
 
     public List<Node> Nodes { get; private set; }
 
@@ -82,11 +89,30 @@ public class Grid : MonoBehaviour
         return Nodes.First ( n => n.Type == nodeType );
     }
 
-    public Node GetClosestNode ( Vector3 worldPosition )
+    public Node NodeFromWorldPoint ( Vector3 worldPosition )
     {
         int xIndex = Mathf.RoundToInt ( ( worldPosition.x - gridData.Offset.X ) / gridData.Spacing.X );
         int yIndex = Mathf.RoundToInt ( ( worldPosition.z - gridData.Offset.Y ) / gridData.Spacing.Y );
         return NodeArray [ xIndex, yIndex ];
     }
-    
+
+    public List<Node> Path;
+    private void OnDrawGizmos ()
+    {
+        if ( NodeArray != null )
+        {
+            foreach ( Node n in NodeArray )
+            {
+                if ( Path != null )
+                {
+                    if ( Path.Contains ( n ) )
+                    {
+                        Gizmos.color = Color.red;
+                        Gizmos.DrawCube ( n.WorldPosition, Vector3.one * 0.8f );
+                    }
+                }
+            }
+        }
+
+    }
 }

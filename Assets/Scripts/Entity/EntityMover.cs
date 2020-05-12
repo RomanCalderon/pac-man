@@ -29,7 +29,7 @@ public class EntityMover : Entity
 
     public void SetCurrentPosition ( Grid grid, Vector3 worldPosition )
     {
-        m_position = grid.GetClosestNode ( worldPosition );
+        m_position = grid.NodeFromWorldPoint ( worldPosition );
     }
 
     public void Move ()
