@@ -41,7 +41,7 @@ public class Node : IHeapItem<Node>
         }
     }
     public Node Parent;
-    int heapIndex;
+    private int heapIndex;
 
     public Node ( int x, int y, Vector3 worldPos, int type )
     {

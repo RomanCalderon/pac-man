@@ -145,7 +145,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 210947404}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1850402587}
@@ -167,6 +167,7 @@ MonoBehaviour:
   m_grid: {fileID: 1083437873}
   m_startDirection: 1
   m_spriteRenderer: {fileID: 1850402588}
+  m_target: {fileID: 1901339874}
 --- !u!1 &534669902
 GameObject:
   m_ObjectHideFlags: 0
@@ -262,6 +263,7 @@ GameObject:
   - component: {fileID: 1083437873}
   - component: {fileID: 1083437875}
   - component: {fileID: 1083437876}
+  - component: {fileID: 1083437877}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -323,8 +325,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 456470d48c6ca8642b081b2be8f01f13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seeker: {fileID: 210947405}
-  target: {fileID: 1901339874}
+--- !u!114 &1083437877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1083437872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92b1755f23e1f7441877af3d35677a1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1142338287
 GameObject:
   m_ObjectHideFlags: 0

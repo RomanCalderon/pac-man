@@ -95,24 +95,5 @@ public class Grid : MonoBehaviour
         int yIndex = Mathf.RoundToInt ( ( worldPosition.z - gridData.Offset.Y ) / gridData.Spacing.Y );
         return NodeArray [ xIndex, yIndex ];
     }
-
-    public List<Node> Path;
-    private void OnDrawGizmos ()
-    {
-        if ( NodeArray != null )
-        {
-            foreach ( Node n in NodeArray )
-            {
-                if ( Path != null )
-                {
-                    if ( Path.Contains ( n ) )
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawCube ( n.WorldPosition, Vector3.one * 0.8f );
-                    }
-                }
-            }
-        }
-
-    }
+    
 }

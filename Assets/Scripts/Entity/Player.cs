@@ -20,14 +20,15 @@ public class Player : MonoBehaviour
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
         Debug.Assert ( m_animator != null );
+
+        Node startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
+        transform.position = startingNode.WorldPosition;
+        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT );
     }
 
     // Start is called before the first frame update
     void Start ()
     {
-        Node startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
-        transform.position = startingNode.WorldPosition;
-        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT );
         m_playerEntity.Move ();
     }
 
