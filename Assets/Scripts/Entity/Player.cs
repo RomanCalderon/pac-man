@@ -8,11 +8,17 @@ public class Player : MonoBehaviour
     private Grid m_grid = null;
     private EntityMover m_playerEntity = null;
     private float m_movementSpeed = 5.0f;
-
     private float m_updatePositionCooler;
+
+    [SerializeField]
+    private SpriteRenderer m_spriteRenderer;
+    [SerializeField]
+    private Animator m_animator;
 
     private void Awake ()
     {
+        Debug.Assert ( m_spriteRenderer != null );
+        Debug.Assert ( m_animator != null );
     }
 
     // Start is called before the first frame update
@@ -32,6 +38,7 @@ public class Player : MonoBehaviour
 
         MovementInput ();
         MovementUpdater ();
+        AnimationUpdater ();
     }
 
     private void MovementInput ()
@@ -43,6 +50,7 @@ public class Player : MonoBehaviour
         if ( Input.GetKeyDown ( KeyCode.RightArrow ) || Input.GetKeyDown ( KeyCode.D ) )
         {
             m_playerEntity.UpdateDirection ( EntityMover.Directions.RIGHT );
+            UpdateGraphicsDirection ( EntityMover.Directions.RIGHT );
         }
         if ( Input.GetKeyDown ( KeyCode.DownArrow ) || Input.GetKeyDown ( KeyCode.S ) )
         {
@@ -51,6 +59,7 @@ public class Player : MonoBehaviour
         if ( Input.GetKeyDown ( KeyCode.LeftArrow ) || Input.GetKeyDown ( KeyCode.A ) )
         {
             m_playerEntity.UpdateDirection ( EntityMover.Directions.LEFT );
+            UpdateGraphicsDirection ( EntityMover.Directions.LEFT );
         }
     }
 
@@ -65,6 +74,16 @@ public class Player : MonoBehaviour
             m_playerEntity.Move ();
             m_updatePositionCooler = ( 1f / m_movementSpeed );
         }
+    }
+
+    private void AnimationUpdater ()
+    {
+        m_animator.SetBool ( "IsMoving", m_playerEntity.m_isMoving );
+    }
+
+    private void UpdateGraphicsDirection ( EntityMover.Directions direction )
+    {
+        m_spriteRenderer.flipX = direction == EntityMover.Directions.LEFT;
     }
 
     private void OnDrawGizmos ()
