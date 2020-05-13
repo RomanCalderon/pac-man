@@ -22,7 +22,6 @@ public class Player : MonoBehaviour
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
         Debug.Assert ( m_animator != null );
-        Debug.Assert ( m_boxCollider != null );
 
         m_boxCollider = GetComponent<BoxCollider2D> ();
 

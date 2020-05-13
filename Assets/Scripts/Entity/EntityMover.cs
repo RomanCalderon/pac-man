@@ -18,7 +18,7 @@ public class EntityMover : Entity
     private Directions m_desiredDirection;
     private Node.NodeType [] m_invalidNodeTypes;
 
-    public EntityMover ( Node defaultPosition, Directions defaultDirection, Node.NodeType[] invalidNodeTypes ) : base ( defaultPosition )
+    public EntityMover ( Node defaultPosition, Directions defaultDirection, Node.NodeType [] invalidNodeTypes ) : base ( defaultPosition )
     {
         m_direction = defaultDirection;
         m_desiredDirection = defaultDirection;
@@ -82,6 +82,10 @@ public class EntityMover : Entity
 
     public bool IsValidStep ( Node stepNode )
     {
+        if ( stepNode == null )
+        {
+            return false;
+        }
         bool invalidStep = m_invalidNodeTypes.Contains ( stepNode.Type );
         return stepNode != null && !invalidStep;
     }
