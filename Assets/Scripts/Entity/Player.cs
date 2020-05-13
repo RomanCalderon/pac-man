@@ -9,7 +9,9 @@ public class Player : MonoBehaviour
     private Grid m_grid = null;
     private EntityMover m_playerEntity = null;
     private float m_movementSpeed = 5.0f;
+    private bool m_canMove = true;
     private float m_updatePositionCooler;
+    private Node startingNode = null;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
@@ -19,33 +21,50 @@ public class Player : MonoBehaviour
 
     private void Awake ()
     {
-        Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
         Debug.Assert ( m_animator != null );
 
         m_boxCollider = GetComponent<BoxCollider2D> ();
 
-        Node startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
-        Node.NodeType [] invalidNodeTypes = new Node.NodeType [] { Node.NodeType.WALL, Node.NodeType.VILLAIN_WALL };
-        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT, invalidNodeTypes );
-        transform.position = startingNode.WorldPosition;
+        GameManager.onPlayerDied += OnPlayerDied;
+        GameManager.onLevelCleared += OnLevelCleared;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
-        m_playerEntity.Move ();
+        startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
+        Node.NodeType [] invalidNodeTypes = new Node.NodeType [] { Node.NodeType.WALL, Node.NodeType.VILLAIN_WALL };
+        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT, invalidNodeTypes );
+        transform.position = startingNode.WorldPosition;
+
+        m_updatePositionCooler = 3.0f;
     }
 
     // Update is called once per frame
     void Update ()
     {
-        Vector3 targetPosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
-        transform.position = Vector3.MoveTowards ( transform.position, targetPosition, Time.deltaTime * m_movementSpeed );
-
         MovementInput ();
         MovementUpdater ();
         AnimationUpdater ();
+    }
+
+    public void SetGrid ( Grid grid )
+    {
+        m_grid = grid;
+    }
+
+    public void ResetPlayer()
+    {
+        transform.position = startingNode.WorldPosition;
+        m_playerEntity.SetCurrentPosition ( m_grid, transform.position );
+        m_updatePositionCooler = 3.0f;
+        m_canMove = true;
+    }
+
+    public Node GetPlayerNode ()
+    {
+        return m_playerEntity.GetCurrentPosition ();
     }
 
     #region Movement
@@ -74,6 +93,14 @@ public class Player : MonoBehaviour
 
     private void MovementUpdater ()
     {
+        if ( !m_canMove )
+        {
+            return;
+        }
+
+        Vector3 targetPosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
+        transform.position = Vector3.MoveTowards ( transform.position, targetPosition, Time.deltaTime * m_movementSpeed );
+
         if ( m_updatePositionCooler > 0 )
         {
             m_updatePositionCooler -= Time.deltaTime;
@@ -97,8 +124,13 @@ public class Player : MonoBehaviour
                 return;
             }
             GameManager.instance.ConsumedCoin ();
-            AudioManager.PlaySound ( "PickupCoin", 0.5f );
+            AudioManager.PlaySound ( "pickup_coin", 0.5f );
             Destroy ( item.gameObject );
+        }
+
+        if ( collision.tag == "Villain" )
+        {
+            GameManager.instance.PlayerKilled ();
         }
     }
 
@@ -109,7 +141,21 @@ public class Player : MonoBehaviour
 
     private void UpdateGraphicsDirection ( EntityMover.Directions direction )
     {
+        if ( !m_canMove )
+        {
+            return;
+        }
         m_spriteRenderer.flipX = direction == EntityMover.Directions.LEFT;
+    }
+
+    private void OnLevelCleared()
+    {
+        m_canMove = false;
+    }
+
+    private void OnPlayerDied ()
+    {
+        m_canMove = false;
     }
 
     private void OnDrawGizmos ()

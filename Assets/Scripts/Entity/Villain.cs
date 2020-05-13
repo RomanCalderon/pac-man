@@ -2,39 +2,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Villain : MonoBehaviour
 {
     [SerializeField]
     private Grid m_grid = null;
     [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
+    private bool m_canMove = true;
     [SerializeField]
     private float m_pathUpdateInterval = 10.0f;
     private float m_updatePathRequestCooler;
+    private Node startingNode = null;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
     [SerializeField]
     private Color m_color = Color.white;
-    
-    private Node m_targetNode = null;
+
+    private Transform m_target = null;
     private Coroutine pathCoroutine = null;
     private Vector3 [] path = null;
     private int targetIndex = 0;
 
     private void Awake ()
     {
-        Debug.Assert ( m_grid != null );
         Debug.Assert ( m_spriteRenderer != null );
 
-        Node startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
-        transform.position = startingNode.WorldPosition;
-        m_spriteRenderer.color = m_color;
+        GameManager.onPlayerDied += OnPlayerDied;
+        GameManager.onLevelCleared += OnLevelCleared;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
+        startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
+        transform.position = startingNode.WorldPosition;
+        m_spriteRenderer.color = m_color;
+
         m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
 
@@ -43,19 +48,32 @@ public class Villain : MonoBehaviour
         MovementUpdater ();
     }
 
-    public void SetTarget ( Node targetNode )
+    public void SetGrid ( Grid grid )
     {
-        m_targetNode = targetNode;
+        m_grid = grid;
+    }
 
-        if ( targetNode != null )
+    public void ResetVillain ()
+    {
+        transform.position = startingNode.WorldPosition;
+        m_updatePathRequestCooler = 3.0f;
+        m_canMove = true;
+    }
+
+    public void SetTarget ( Transform target )
+    {
+        m_target = target;
+        m_canMove = true;
+
+        if ( target != null )
         {
-            PathRequestManager.RequestPath ( transform.position, m_targetNode.WorldPosition, OnPathFound );
+            PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
         }
     }
 
     private void MovementUpdater ()
     {
-        if ( m_targetNode != null )
+        if ( m_target != null && m_canMove )
         {
             if ( m_updatePathRequestCooler > 0 )
             {
@@ -63,7 +81,7 @@ public class Villain : MonoBehaviour
             }
             else
             {
-                PathRequestManager.RequestPath ( transform.position, m_targetNode.WorldPosition, OnPathFound );
+                PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
                 m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
             }
         }
@@ -79,6 +97,15 @@ public class Villain : MonoBehaviour
                 StopCoroutine ( pathCoroutine );
             }
             pathCoroutine = StartCoroutine ( FollowPath () );
+        }
+    }
+
+    private void StopPath ()
+    {
+        m_canMove = false;
+        if ( pathCoroutine != null )
+        {
+            StopCoroutine ( pathCoroutine );
         }
     }
 
@@ -105,6 +132,16 @@ public class Villain : MonoBehaviour
             transform.position = Vector3.MoveTowards ( transform.position, currentWaypoint, Time.deltaTime * m_movementSpeed );
             yield return null;
         }
+    }
+
+    private void OnLevelCleared()
+    {
+        StopPath ();
+    }
+
+    private void OnPlayerDied ()
+    {
+        StopPath ();
     }
 
     private void OnDrawGizmos ()

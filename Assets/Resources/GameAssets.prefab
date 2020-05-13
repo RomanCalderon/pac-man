@@ -44,9 +44,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AudioClips:
-  - Name: PickupCoin
+  - Name: pickup_coin
     AudioClip: {fileID: 8300000, guid: 94ae3455c1f07eb4da4bb23821c8226b, type: 3}
-  - Name: Powerup
+  - Name: powerup
     AudioClip: {fileID: 8300000, guid: 1458b6ae6b7a7144a9a93a22f3800d68, type: 3}
-  - Name: PlayerDeath
+  - Name: player_death
     AudioClip: {fileID: 8300000, guid: c817f8504251c9e4a8148599200d1624, type: 3}
+  - Name: button_hover
+    AudioClip: {fileID: 8300000, guid: 7749278fa118acf4ba56973a809bdd5e, type: 3}
+  - Name: button_click
+    AudioClip: {fileID: 8300000, guid: 012bff9fc0a4fe24e93da3842541aacf, type: 3}
+  - Name: teleport
+    AudioClip: {fileID: 8300000, guid: 917b1202c2f3d054f8274516d091be63, type: 3}
+  - Name: game_over
+    AudioClip: {fileID: 8300000, guid: 4617fe2fc5c3c7a44a1a820774137006, type: 3}
