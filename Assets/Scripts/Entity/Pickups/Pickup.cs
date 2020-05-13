@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Pickup : MonoBehaviour
 {
-    enum PickupTypes
+    public enum PickupTypes
     {
         COIN,
         EXTRA_LIFE
@@ -19,15 +19,8 @@ public class Pickup : MonoBehaviour
         m_boxCollider = GetComponent<BoxCollider2D> ();
     }
 
-    // Start is called before the first frame update
-    void Start ()
+    public PickupTypes GetPickupType ()
     {
-
-    }
-
-    // Update is called once per frame
-    void Update ()
-    {
-
+        return m_pickupType;
     }
 }

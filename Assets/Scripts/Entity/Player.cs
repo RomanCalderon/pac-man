@@ -48,6 +48,8 @@ public class Player : MonoBehaviour
         AnimationUpdater ();
     }
 
+    #region Movement
+
     private void MovementInput ()
     {
         if ( Input.GetKeyDown ( KeyCode.UpArrow ) || Input.GetKeyDown ( KeyCode.W ) )
@@ -80,6 +82,23 @@ public class Player : MonoBehaviour
         {
             m_playerEntity.Move ();
             m_updatePositionCooler = ( 1f / m_movementSpeed );
+        }
+    }
+
+    #endregion
+
+    private void OnTriggerEnter2D ( Collider2D collision )
+    {
+        if ( collision.tag == "Pickup" )
+        {
+            Pickup item = collision.GetComponent<Pickup> ();
+            if ( item == null )
+            {
+                return;
+            }
+            GameManager.instance.ConsumedCoin ();
+            AudioManager.PlaySound ( "PickupCoin", 0.5f );
+            Destroy ( item.gameObject );
         }
     }
 
