@@ -53,10 +53,10 @@ public class Villain : MonoBehaviour
         m_grid = grid;
     }
 
-    public void ResetVillain ( float delay )
+    public void ResetVillain ()
     {
         transform.position = startingNode.WorldPosition;
-        m_updatePathRequestCooler = delay;
+        m_target = null;
         m_canMove = true;
     }
 

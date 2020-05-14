@@ -11,24 +11,25 @@ public class GameManager : MonoBehaviour
 
     private TimeKeeper m_timeKeeper = null;
 
+    private const int PLAYER_STARTING_LEVEL = 0;
     private const int PLAYER_STARTING_SCORE = 0;
     private const int PLAYER_STARTING_LIVES = 3;
     private const int COIN_SCORE_VALUE = 100;
     private const int PLAYER_DEATH_STROBE_ITERATIONS = 3;
 
-    public delegate void PlayerHandler ();
-    public static PlayerHandler onPlayerDied;
-    public static PlayerHandler onLevelCleared;
-    public delegate void PlayerLivesHandler ( int lives );
-    public static PlayerLivesHandler onPlayerLivesChanged;
-    public delegate void PlayerScoreHandler ( int score );
-    public static PlayerScoreHandler onPlayerScoreChanged;
-    public delegate void PlayerLevelTimeHandler ( int time );
-    public static PlayerLevelTimeHandler onPlayerLevelTimeChanged;
+    public delegate void PlayerStatsHandler ( PlayerStats playerStats );
+    public static PlayerStatsHandler onPlayerStatsChanged;
+    public delegate void PlayerEventHandler ();
+    public static PlayerEventHandler onPlayerDied;
+    public static PlayerEventHandler onLevelCleared;
+    public delegate void ResultsHandler ( PlayerResults playerResults );
+    public static ResultsHandler onShareResults;
 
-    private int m_currentLevel = 1;
     private PlayerStats m_playerStats;
+    private PlayerResults m_playerResults;
+
     private int m_totalCoins = 0;
+    private Coroutine m_startVillainsCoroutine = null;
 
     [SerializeField]
     private Transform m_gameObjectsHolder = null;
@@ -57,7 +58,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Color m_wallStrobeColor = Color.white;
 
-    private bool m_gameOver = false;
     [Header ( "Scenes" )]
     [SerializeField]
     private string m_gameSceneName = null;
@@ -77,42 +77,55 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad ( gameObject );
 
         m_timeKeeper = GetComponent<TimeKeeper> ();
+
+        // Event subscriptions
         TimeKeeper.onTimerChanged += UpdatePlayerLevelTime;
+        SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
 
         Debug.Assert ( m_gameObjectsHolder != null );
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_playerPrefab != null );
         Debug.Assert ( m_wallMaterial != null );
 
-        m_playerStats = new PlayerStats ( PLAYER_STARTING_LIVES );
+        m_playerStats = new PlayerStats ( PLAYER_STARTING_LEVEL, PLAYER_STARTING_LIVES );
         m_wallMaterial.color = m_wallNormalColor;
     }
 
     private void OnDisable ()
     {
-        Debug.Log ("GameManager::OnDisable()");
+        Debug.Log ( "GameManager::OnDisable()" );
+
+        // Event unsubscriptions
+        TimeKeeper.onTimerChanged -= UpdatePlayerLevelTime;
+        SceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
-        onPlayerLivesChanged?.Invoke ( m_playerStats.Lives );
-        onPlayerScoreChanged?.Invoke ( m_playerStats.Score );
-
-        SpawnEntities ();
-        PlaceCoins ();
-        StartCoroutine ( StartVillains () );
-
-        // Start level timer
-        m_timeKeeper.StartTime ();
+        StartNewLevel ();
     }
 
     private void Update ()
     {
-        if (Input.GetKeyDown(KeyCode.C))
+        if ( Input.GetKeyDown ( KeyCode.C ) )
         {
             m_totalCoins = 0;
         }
+    }
+
+    private void StartNewLevel ()
+    {
+        UpdatePlayerLevel ( m_playerStats.Level + 1 );
+
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
+
+        SpawnEntities ();
+        PlaceCoins ();
+        m_startVillainsCoroutine = StartCoroutine ( StartVillains () );
+
+        // Start level timer
+        m_timeKeeper.StartTime ();
     }
 
     private void SpawnEntities ()
@@ -150,39 +163,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public int GetPlayerScore ()
+    public PlayerStats GetPlayerStats ()
     {
-        return m_playerStats.Score;
+        return m_playerStats;
     }
 
-    public int GetPlayerLives ()
+    private void UpdatePlayerLevel ( int newLevel )
     {
-        return m_playerStats.Lives;
+        m_playerStats.Level = Mathf.Max ( 0, newLevel );
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
     private void UpdatePlayerLives ( int increment )
     {
         m_playerStats.Lives += increment;
-        onPlayerLivesChanged?.Invoke ( m_playerStats.Lives );
+        m_playerStats.Lives = Mathf.Max ( 0, m_playerStats.Lives );
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
     private void UpdatePlayerScore ( int increment )
     {
-        m_playerStats.Score += increment;
-        onPlayerScoreChanged?.Invoke ( m_playerStats.Score );
-    }
-
-    private void UpdatePlayerLevelTime ( float time )
-    {
-        int timeRoundedToInt = Mathf.RoundToInt ( time );
-        m_playerStats.LevelTime = timeRoundedToInt;
-        onPlayerLevelTimeChanged?.Invoke ( timeRoundedToInt );
+        m_playerStats.ScoreLast += increment;
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
     public void PlayerKilled ()
     {
         // Stop level timer
         m_timeKeeper.StopTime ();
+
+        if ( m_startVillainsCoroutine != null )
+        {
+            StopCoroutine ( m_startVillainsCoroutine );
+        }
 
         AudioManager.PlaySound ( "player_death", 0.5f );
         UpdatePlayerLives ( -1 );
@@ -206,9 +219,14 @@ public class GameManager : MonoBehaviour
 
         for ( int i = 0; i < m_villains.Count; i++ )
         {
-            float startDelay = i * 3 + 5.0f;
-            m_villains [ i ].ResetVillain ( startDelay );
+            m_villains [ i ].ResetVillain ();
         }
+
+        if ( m_startVillainsCoroutine != null )
+        {
+            StopCoroutine ( m_startVillainsCoroutine );
+        }
+        StartCoroutine ( StartVillains () );
 
         // Resume level timer
         m_timeKeeper.StartTime ();
@@ -219,23 +237,49 @@ public class GameManager : MonoBehaviour
         // Level cleared
         // Stop level timer
         m_timeKeeper.StopTime ();
+        if ( m_startVillainsCoroutine != null )
+        {
+            StopCoroutine ( m_startVillainsCoroutine );
+        }
+
         onLevelCleared?.Invoke ();
         StartCoroutine ( StartEndingSequence ( GoToResults ) );
     }
 
     private void GoToResults ()
     {
-        m_gameOver = m_playerStats.Lives <= 0;
         m_gameObjectsHolder.gameObject.SetActive ( false );
 
         SceneManager.LoadScene ( m_resultsSceneName );
     }
 
+    #region Event Listeners
+
+    private void UpdatePlayerLevelTime ( float time )
+    {
+        int timeRoundedToInt = Mathf.RoundToInt ( time );
+        m_playerStats.LevelTime = timeRoundedToInt;
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
+    }
+
+    private void SceneManager_activeSceneChanged ( Scene fromScene, Scene toScene )
+    {
+        if ( toScene.name == m_resultsSceneName )
+        {
+            m_playerStats.ScoreTotal += m_playerStats.ScoreLast;
+            m_playerResults = new PlayerResults ( m_playerStats );
+            onShareResults?.Invoke ( m_playerResults );
+            m_playerStats.ScoreLast = 0;
+        }
+    }
+
+    #endregion
+
     #region IEnumerators
 
     private IEnumerator StartVillains ()
     {
-        if (m_player == null)
+        if ( m_player == null )
         {
             yield break;
         }
@@ -266,14 +310,29 @@ public class GameManager : MonoBehaviour
 
 public struct PlayerStats
 {
-    public int Score;
+    public int Level;
+    public int ScoreLast;
+    public int ScoreTotal;
     public int Lives;
     public int LevelTime;
 
-    public PlayerStats ( int lives )
+    public PlayerStats ( int level, int lives )
     {
-        Score = 0;
+        Level = level;
         Lives = lives;
+        ScoreLast = ScoreTotal = 0;
         LevelTime = 0;
+    }
+}
+
+public struct PlayerResults
+{
+    public PlayerStats PlayerStats;
+    public bool GameOver;
+
+    public PlayerResults ( PlayerStats playerStats )
+    {
+        PlayerStats = playerStats;
+        GameOver = playerStats.Lives <= 0;
     }
 }

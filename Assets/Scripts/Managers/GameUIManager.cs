@@ -14,16 +14,12 @@ public class GameUIManager : MonoBehaviour
 
     private void OnEnable ()
     {
-        GameManager.onPlayerLivesChanged += UpdatePlayerLives;
-        GameManager.onPlayerScoreChanged += UpdatePlayerScore;
-        GameManager.onPlayerLevelTimeChanged += UpdatePlayerLevelTime;
+        GameManager.onPlayerStatsChanged += UpdatePlayerStatsUI;
     }
 
     private void OnDisable ()
     {
-        GameManager.onPlayerLivesChanged -= UpdatePlayerLives;
-        GameManager.onPlayerScoreChanged -= UpdatePlayerScore;
-        GameManager.onPlayerLevelTimeChanged -= UpdatePlayerLevelTime;
+        GameManager.onPlayerStatsChanged -= UpdatePlayerStatsUI;
     }
 
     // Start is called before the first frame update
@@ -34,21 +30,10 @@ public class GameUIManager : MonoBehaviour
         Debug.Assert ( m_playerLevelTimeText != null );
     }
 
-    private void UpdatePlayerLives ( int lives )
+    private void UpdatePlayerStatsUI ( PlayerStats playerStats )
     {
-        lives = Mathf.Clamp ( lives, 0, 3 );
-        m_playerLivesMask.fillAmount = lives / 3f;
-    }
-
-    private void UpdatePlayerScore ( int score )
-    {
-        score = Mathf.Max ( 0, score );
-        m_playerScoreText.text = score.ToString ();
-    }
-
-    private void UpdatePlayerLevelTime ( int time )
-    {
-        time = Mathf.Max ( 0, time );
-        m_playerLevelTimeText.text = time.ToString () + "s";
+        m_playerLivesMask.fillAmount = playerStats.Lives / 3f;
+        m_playerScoreText.text = playerStats.ScoreLast.ToString ();
+        m_playerLevelTimeText.text = playerStats.LevelTime.ToString () + "s";
     }
 }
