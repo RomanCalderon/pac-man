@@ -4,12 +4,26 @@ using UnityEngine;
 
 public class TimeKeeper : MonoBehaviour
 {
-    private float m_stopwatch = 0.0f;
-    public int Stopwatch
+    public delegate void TimerHandler ( float ellapsedTime );
+    public static TimerHandler onTimerChanged;
+
+    private float m_ellapsedTime = 0.0f;
+    public float EllapsedTime
     {
         get
         {
-            return ( int ) m_stopwatch;
+            return m_ellapsedTime;
+        }
+        private set
+        {
+            float oldValue = m_ellapsedTime;
+            m_ellapsedTime = value;
+            float flooredValue = Mathf.FloorToInt ( value );
+
+            if ( flooredValue > oldValue )
+            {
+                onTimerChanged?.Invoke ( flooredValue );
+            }
         }
     }
     private bool m_isCounting = false;
@@ -19,7 +33,7 @@ public class TimeKeeper : MonoBehaviour
     {
         if ( m_isCounting )
         {
-            m_stopwatch += Time.deltaTime;
+            EllapsedTime += Time.deltaTime;
         }
     }
 
@@ -36,6 +50,6 @@ public class TimeKeeper : MonoBehaviour
     public void ResetTime ()
     {
         m_isCounting = false;
-        m_stopwatch = 0.0f;
+        m_ellapsedTime = 0.0f;
     }
 }

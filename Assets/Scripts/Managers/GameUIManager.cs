@@ -9,18 +9,29 @@ public class GameUIManager : MonoBehaviour
     private Image m_playerLivesMask = null;
     [SerializeField]
     private Text m_playerScoreText = null;
+    [SerializeField]
+    private Text m_playerLevelTimeText = null;
 
-    private void Awake ()
+    private void OnEnable ()
     {
         GameManager.onPlayerLivesChanged += UpdatePlayerLives;
         GameManager.onPlayerScoreChanged += UpdatePlayerScore;
+        GameManager.onPlayerLevelTimeChanged += UpdatePlayerLevelTime;
+    }
+
+    private void OnDisable ()
+    {
+        GameManager.onPlayerLivesChanged -= UpdatePlayerLives;
+        GameManager.onPlayerScoreChanged -= UpdatePlayerScore;
+        GameManager.onPlayerLevelTimeChanged -= UpdatePlayerLevelTime;
     }
 
     // Start is called before the first frame update
-    void Start ()
+    void Awake ()
     {
         Debug.Assert ( m_playerLivesMask != null );
         Debug.Assert ( m_playerScoreText != null );
+        Debug.Assert ( m_playerLevelTimeText != null );
     }
 
     private void UpdatePlayerLives ( int lives )
@@ -35,9 +46,9 @@ public class GameUIManager : MonoBehaviour
         m_playerScoreText.text = score.ToString ();
     }
 
-    private void OnDisable ()
+    private void UpdatePlayerLevelTime ( int time )
     {
-        GameManager.onPlayerLivesChanged -= UpdatePlayerLives;
-        GameManager.onPlayerScoreChanged -= UpdatePlayerScore;
+        time = Mathf.Max ( 0, time );
+        m_playerLevelTimeText.text = time.ToString () + "s";
     }
 }

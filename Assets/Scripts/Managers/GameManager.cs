@@ -23,6 +23,8 @@ public class GameManager : MonoBehaviour
     public static PlayerLivesHandler onPlayerLivesChanged;
     public delegate void PlayerScoreHandler ( int score );
     public static PlayerScoreHandler onPlayerScoreChanged;
+    public delegate void PlayerLevelTimeHandler ( int time );
+    public static PlayerLevelTimeHandler onPlayerLevelTimeChanged;
 
     private int m_currentLevel = 1;
     private PlayerStats m_playerStats;
@@ -75,14 +77,20 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad ( gameObject );
 
         m_timeKeeper = GetComponent<TimeKeeper> ();
+        TimeKeeper.onTimerChanged += UpdatePlayerLevelTime;
 
         Debug.Assert ( m_gameObjectsHolder != null );
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_playerPrefab != null );
         Debug.Assert ( m_wallMaterial != null );
 
-        m_playerStats = new PlayerStats ( PLAYER_STARTING_SCORE, PLAYER_STARTING_LIVES );
+        m_playerStats = new PlayerStats ( PLAYER_STARTING_LIVES );
         m_wallMaterial.color = m_wallNormalColor;
+    }
+
+    private void OnDisable ()
+    {
+        Debug.Log ("GameManager::OnDisable()");
     }
 
     // Start is called before the first frame update
@@ -94,6 +102,17 @@ public class GameManager : MonoBehaviour
         SpawnEntities ();
         PlaceCoins ();
         StartCoroutine ( StartVillains () );
+
+        // Start level timer
+        m_timeKeeper.StartTime ();
+    }
+
+    private void Update ()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            m_totalCoins = 0;
+        }
     }
 
     private void SpawnEntities ()
@@ -153,9 +172,18 @@ public class GameManager : MonoBehaviour
         onPlayerScoreChanged?.Invoke ( m_playerStats.Score );
     }
 
+    private void UpdatePlayerLevelTime ( float time )
+    {
+        int timeRoundedToInt = Mathf.RoundToInt ( time );
+        m_playerStats.LevelTime = timeRoundedToInt;
+        onPlayerLevelTimeChanged?.Invoke ( timeRoundedToInt );
+    }
+
     public void PlayerKilled ()
     {
-        Debug.Log ( "Player got killed!" );
+        // Stop level timer
+        m_timeKeeper.StopTime ();
+
         AudioManager.PlaySound ( "player_death", 0.5f );
         UpdatePlayerLives ( -1 );
         onPlayerDied?.Invoke ();
@@ -181,11 +209,16 @@ public class GameManager : MonoBehaviour
             float startDelay = i * 3 + 5.0f;
             m_villains [ i ].ResetVillain ( startDelay );
         }
+
+        // Resume level timer
+        m_timeKeeper.StartTime ();
     }
 
     private void FinishedLevel ()
     {
         // Level cleared
+        // Stop level timer
+        m_timeKeeper.StopTime ();
         onLevelCleared?.Invoke ();
         StartCoroutine ( StartEndingSequence ( GoToResults ) );
     }
@@ -202,6 +235,10 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StartVillains ()
     {
+        if (m_player == null)
+        {
+            yield break;
+        }
         yield return new WaitForSeconds ( 5.0f );
         foreach ( Villain villain in m_villains )
         {
@@ -231,10 +268,12 @@ public struct PlayerStats
 {
     public int Score;
     public int Lives;
+    public int LevelTime;
 
-    public PlayerStats ( int score, int lives )
+    public PlayerStats ( int lives )
     {
-        Score = score;
+        Score = 0;
         Lives = lives;
+        LevelTime = 0;
     }
 }

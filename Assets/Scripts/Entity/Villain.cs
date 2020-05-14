@@ -10,8 +10,6 @@ public class Villain : MonoBehaviour
     [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
     private bool m_canMove = true;
-    //[SerializeField]
-    //private Vector2 m_pathUpdateMinMax = new Vector2 ( 2, 20 );
     [SerializeField, Range ( 5, 40 )]
     private float m_pathUpdateInterval = 10.0f;
     private float m_updatePathRequestCooler;
@@ -41,9 +39,7 @@ public class Villain : MonoBehaviour
         startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
         transform.position = startingNode.WorldPosition;
         m_spriteRenderer.color = m_color;
-
-        // Select a random value for path update interval
-        //m_pathUpdateInterval = Random.Range ( m_pathUpdateMinMax.x, m_pathUpdateMinMax.y );
+        
         m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
 
@@ -67,9 +63,8 @@ public class Villain : MonoBehaviour
     public void SetTarget ( Transform target )
     {
         m_target = target;
-        m_canMove = true;
 
-        if ( target != null )
+        if ( target != null && m_canMove )
         {
             PathRequestManager.RequestPath ( transform.position, m_target.position, OnPathFound );
         }
@@ -106,11 +101,11 @@ public class Villain : MonoBehaviour
 
     private void StopPath ()
     {
-        m_canMove = false;
         if ( pathCoroutine != null )
         {
             StopCoroutine ( pathCoroutine );
         }
+        m_canMove = false;
     }
 
     private IEnumerator FollowPath ()
@@ -118,7 +113,7 @@ public class Villain : MonoBehaviour
         targetIndex = 0;
         Vector3 currentWaypoint = path [ 0 ];
 
-        while ( true )
+        while ( m_canMove )
         {
             float waypointDistance = Vector3.Distance ( transform.position, currentWaypoint );
             if ( waypointDistance <= 0.005f )

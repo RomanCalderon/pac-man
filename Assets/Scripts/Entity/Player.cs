@@ -12,7 +12,9 @@ public class Player : MonoBehaviour
     private float m_movementSpeed = 5.0f;
     private bool m_canMove = true;
     private float m_updatePositionCooler;
-    private Node startingNode = null;
+    private Node m_startingNode = null;
+    private bool m_isDead = false;
+    private bool m_levelCleared = false;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
@@ -34,10 +36,10 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start ()
     {
-        startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
+        m_startingNode = m_grid.GetNode ( Node.NodeType.PLAYER_SPAWN );
         Node.NodeType [] invalidNodeTypes = new Node.NodeType [] { Node.NodeType.WALL, Node.NodeType.VILLAIN_WALL };
-        m_playerEntity = new EntityMover ( startingNode, EntityMover.Directions.RIGHT, invalidNodeTypes );
-        transform.position = startingNode.WorldPosition;
+        m_playerEntity = new EntityMover ( m_startingNode, EntityMover.Directions.RIGHT, invalidNodeTypes );
+        transform.position = m_startingNode.WorldPosition;
 
         m_updatePositionCooler = 3.0f;
     }
@@ -55,12 +57,14 @@ public class Player : MonoBehaviour
         m_grid = grid;
     }
 
-    public void ResetPlayer()
+    public void ResetPlayer ()
     {
-        transform.position = startingNode.WorldPosition;
+        transform.position = m_startingNode.WorldPosition;
         m_playerEntity.SetCurrentPosition ( m_grid, transform.position );
         m_updatePositionCooler = 3.0f;
         m_canMove = true;
+        m_isDead = false;
+        m_levelCleared = false;
     }
 
     public Node GetPlayerNode ()
@@ -94,7 +98,7 @@ public class Player : MonoBehaviour
 
     private void MovementUpdater ()
     {
-        if ( !m_canMove )
+        if ( !m_canMove || m_isDead )
         {
             return;
         }
@@ -137,7 +141,13 @@ public class Player : MonoBehaviour
 
     private void AnimationUpdater ()
     {
-        m_animator.SetBool ( "IsMoving", m_playerEntity.m_isMoving );
+        m_animator.SetBool ( "IsDead", m_isDead );
+        m_animator.SetBool ( "ClearedLevel", m_levelCleared );
+
+        if ( !m_isDead )
+        {
+            m_animator.SetBool ( "IsMoving", m_playerEntity.m_isMoving && m_canMove );
+        }
     }
 
     private void UpdateGraphicsDirection ( EntityMover.Directions direction )
@@ -149,14 +159,16 @@ public class Player : MonoBehaviour
         m_spriteRenderer.flipX = direction == EntityMover.Directions.LEFT;
     }
 
-    private void OnLevelCleared()
+    private void OnLevelCleared ()
     {
         m_canMove = false;
+        m_levelCleared = true;
     }
 
     private void OnPlayerDied ()
     {
         m_canMove = false;
+        m_isDead = true;
     }
 
     private void OnDrawGizmos ()
