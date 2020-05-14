@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 536627383067904595}
   - component: {fileID: 536627383067904588}
   m_Layer: 0
-  m_Name: Ghostie
+  m_Name: Red Ghostie
   m_TagString: Villain
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,10 +47,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_grid: {fileID: 0}
-  m_movementSpeed: 4.5
-  m_pathUpdateInterval: 3
+  m_movementSpeed: 5.8
+  m_pathUpdateInterval: 8
   m_spriteRenderer: {fileID: 536627384709455872}
-  m_color: {r: 1, g: 1, b: 1, a: 1}
+  m_color: {r: 1, g: 0.8, b: 0.8, a: 1}
 --- !u!61 &536627383067904595
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -143,6 +143,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

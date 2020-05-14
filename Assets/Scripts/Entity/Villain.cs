@@ -10,7 +10,9 @@ public class Villain : MonoBehaviour
     [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
     private bool m_canMove = true;
-    [SerializeField]
+    //[SerializeField]
+    //private Vector2 m_pathUpdateMinMax = new Vector2 ( 2, 20 );
+    [SerializeField, Range ( 5, 40 )]
     private float m_pathUpdateInterval = 10.0f;
     private float m_updatePathRequestCooler;
     private Node startingNode = null;
@@ -40,6 +42,8 @@ public class Villain : MonoBehaviour
         transform.position = startingNode.WorldPosition;
         m_spriteRenderer.color = m_color;
 
+        // Select a random value for path update interval
+        //m_pathUpdateInterval = Random.Range ( m_pathUpdateMinMax.x, m_pathUpdateMinMax.y );
         m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
 
@@ -53,10 +57,10 @@ public class Villain : MonoBehaviour
         m_grid = grid;
     }
 
-    public void ResetVillain ()
+    public void ResetVillain ( float delay )
     {
         transform.position = startingNode.WorldPosition;
-        m_updatePathRequestCooler = 3.0f;
+        m_updatePathRequestCooler = delay;
         m_canMove = true;
     }
 
@@ -134,7 +138,7 @@ public class Villain : MonoBehaviour
         }
     }
 
-    private void OnLevelCleared()
+    private void OnLevelCleared ()
     {
         StopPath ();
     }

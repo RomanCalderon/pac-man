@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Grid m_grid = null;
     private EntityMover m_playerEntity = null;
+    [SerializeField]
     private float m_movementSpeed = 5.0f;
     private bool m_canMove = true;
     private float m_updatePositionCooler;

@@ -4,17 +4,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+[RequireComponent ( typeof ( TimeKeeper ) )]
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    private TimeKeeper m_timeKeeper = null;
+
     private const int PLAYER_STARTING_SCORE = 0;
     private const int PLAYER_STARTING_LIVES = 3;
-    private const int PLAYER_DEATH_STROBE_ITERATIONS = 4;
+    private const int COIN_SCORE_VALUE = 100;
+    private const int PLAYER_DEATH_STROBE_ITERATIONS = 3;
 
     public delegate void PlayerHandler ();
     public static PlayerHandler onPlayerDied;
     public static PlayerHandler onLevelCleared;
+    public delegate void PlayerLivesHandler ( int lives );
+    public static PlayerLivesHandler onPlayerLivesChanged;
+    public delegate void PlayerScoreHandler ( int score );
+    public static PlayerScoreHandler onPlayerScoreChanged;
 
     private int m_currentLevel = 1;
     private PlayerStats m_playerStats;
@@ -42,15 +50,17 @@ public class GameManager : MonoBehaviour
     [Header ( "Wall" )]
     [SerializeField]
     private Material m_wallMaterial = null;
-    private Color m_wallOriginalColor;
+    [SerializeField]
+    private Color m_wallNormalColor = Color.blue;
+    [SerializeField]
     private Color m_wallStrobeColor = Color.white;
 
     private bool m_gameOver = false;
     [Header ( "Scenes" )]
     [SerializeField]
-    private string m_gameSceneName;
+    private string m_gameSceneName = null;
     [SerializeField]
-    private string m_resultsSceneName;
+    private string m_resultsSceneName = null;
 
     private void Awake ()
     {
@@ -64,27 +74,26 @@ public class GameManager : MonoBehaviour
         }
         DontDestroyOnLoad ( gameObject );
 
+        m_timeKeeper = GetComponent<TimeKeeper> ();
+
         Debug.Assert ( m_gameObjectsHolder != null );
         Debug.Assert ( m_grid != null );
         Debug.Assert ( m_playerPrefab != null );
         Debug.Assert ( m_wallMaterial != null );
 
         m_playerStats = new PlayerStats ( PLAYER_STARTING_SCORE, PLAYER_STARTING_LIVES );
-        m_wallOriginalColor = m_wallMaterial.color;
+        m_wallMaterial.color = m_wallNormalColor;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
+        onPlayerLivesChanged?.Invoke ( m_playerStats.Lives );
+        onPlayerScoreChanged?.Invoke ( m_playerStats.Score );
+
         SpawnEntities ();
         PlaceCoins ();
         StartCoroutine ( StartVillains () );
-    }
-
-    // Update is called once per frame
-    void Update ()
-    {
-
     }
 
     private void SpawnEntities ()
@@ -114,7 +123,7 @@ public class GameManager : MonoBehaviour
 
     public void ConsumedCoin ()
     {
-        UpdatePlayerScore ( 1 );
+        UpdatePlayerScore ( COIN_SCORE_VALUE );
         m_totalCoins--;
         if ( m_totalCoins <= 0 )
         {
@@ -132,14 +141,16 @@ public class GameManager : MonoBehaviour
         return m_playerStats.Lives;
     }
 
-    private void UpdatePlayerScore ( int increment )
-    {
-        m_playerStats.Score += increment;
-    }
-
     private void UpdatePlayerLives ( int increment )
     {
         m_playerStats.Lives += increment;
+        onPlayerLivesChanged?.Invoke ( m_playerStats.Lives );
+    }
+
+    private void UpdatePlayerScore ( int increment )
+    {
+        m_playerStats.Score += increment;
+        onPlayerScoreChanged?.Invoke ( m_playerStats.Score );
     }
 
     public void PlayerKilled ()
@@ -165,9 +176,10 @@ public class GameManager : MonoBehaviour
     {
         m_player.ResetPlayer ();
 
-        foreach ( Villain villain in m_villains )
+        for ( int i = 0; i < m_villains.Count; i++ )
         {
-            villain.ResetVillain ();
+            float startDelay = i * 3 + 5.0f;
+            m_villains [ i ].ResetVillain ( startDelay );
         }
     }
 
@@ -190,7 +202,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StartVillains ()
     {
-        yield return new WaitForSeconds ( 3.0f );
+        yield return new WaitForSeconds ( 5.0f );
         foreach ( Villain villain in m_villains )
         {
             villain.SetTarget ( m_player.transform );
@@ -206,11 +218,9 @@ public class GameManager : MonoBehaviour
         {
             m_wallMaterial.color = m_wallStrobeColor;
             yield return new WaitForSeconds ( 0.5f );
-            m_wallMaterial.color = m_wallOriginalColor;
+            m_wallMaterial.color = m_wallNormalColor;
             yield return new WaitForSeconds ( 0.5f );
         }
-
-        yield return new WaitForSeconds ( 1.0f );
         resultsCallback?.Invoke ();
     }
 

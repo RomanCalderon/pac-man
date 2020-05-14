@@ -22,7 +22,7 @@ public class GameAssets : MonoBehaviour
 
     [Header("Audio Clips")]
     [SerializeField]
-    private AudioClipReference [] AudioClips;
+    private AudioClipReference [] AudioClips = null;
 
     public AudioClip GetAudioClip ( string name )
     {
