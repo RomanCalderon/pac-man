@@ -10,6 +10,8 @@ public class GameUIManager : MonoBehaviour
     [SerializeField]
     private Image m_playerLivesMask = null;
     [SerializeField]
+    private Text m_playerLevelText = null;
+    [SerializeField]
     private Text m_playerScoreText = null;
     [SerializeField]
     private Text m_playerLevelTimeText = null;
@@ -29,6 +31,7 @@ public class GameUIManager : MonoBehaviour
     {
         Debug.Assert ( m_gameCanvas != null );
         Debug.Assert ( m_playerLivesMask != null );
+        Debug.Assert ( m_playerLevelText != null );
         Debug.Assert ( m_playerScoreText != null );
         Debug.Assert ( m_playerLevelTimeText != null );
 
@@ -38,6 +41,7 @@ public class GameUIManager : MonoBehaviour
     private void UpdatePlayerStatsUI ( PlayerStats playerStats )
     {
         m_playerLivesMask.fillAmount = playerStats.Lives / 3f;
+        m_playerLevelText.text = playerStats.Level.ToString ();
         m_playerScoreText.text = playerStats.ScoreLast.ToString ();
         m_playerLevelTimeText.text = playerStats.LevelTime.ToString () + "s";
     }

@@ -57,6 +57,11 @@ public class EntityMover : Entity
         }
     }
 
+    public void Stop()
+    {
+        IsMoving = false;
+    }
+
     public void UpdateDirection ( Directions desiredDirection )
     {
         m_desiredDirection = desiredDirection;

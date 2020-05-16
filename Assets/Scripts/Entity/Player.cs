@@ -74,6 +74,7 @@ public class Player : MonoBehaviour
         transform.position = m_startingNode.WorldPosition;
         m_playerEntity.SetCurrentPosition ( m_grid, transform.position );
         m_playerEntity.UpdateDirection ( EntityMover.Directions.RIGHT );
+        m_playerEntity.Stop ();
         m_updatePositionCooler = 3.0f;
         m_canMove = true;
         m_isDead = false;
@@ -142,7 +143,7 @@ public class Player : MonoBehaviour
                 return;
             }
             GameManager.instance.ConsumedCoin ();
-            AudioManager.PlaySound ( "pickup_coin", 0.5f );
+            AudioManager.PlaySound ( "pickup_coin", 0.3f );
             Destroy ( item.gameObject );
         }
 
