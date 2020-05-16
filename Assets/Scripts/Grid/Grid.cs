@@ -26,7 +26,7 @@ public class Grid : MonoBehaviour
 
     public List<Node> Nodes { get; private set; }
 
-    private void Awake ()
+    private void OnEnable ()
     {
         gridData = GridDataReader.ReadData ( gridConfigFile );
         nodeData = NodeDataReader.ReadData ( nodeConfigFile );
@@ -47,9 +47,6 @@ public class Grid : MonoBehaviour
         GridSizeX = gridData.Size.X;
         GridSizeY = gridData.Size.Y;
         Nodes = new List<Node> ();
-
-        Debug.Log ( "gridData.Size.X = " + gridData.Size.X );
-        Debug.Log ( "gridData.Size.Y = " + gridData.Size.Y );
 
         for ( int x = 0; x < gridData.Size.X; x++ )
         {
@@ -72,7 +69,7 @@ public class Grid : MonoBehaviour
         }
 
         // Done building grid
-        Debug.Log ( "Done." );
+        Debug.Log ( "Done building grid." );
     }
 
     public Node GetNode ( int posX, int posY )

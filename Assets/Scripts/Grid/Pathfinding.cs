@@ -8,13 +8,13 @@ using UnityEngine;
 [RequireComponent ( typeof ( PathRequestManager ) )]
 public class Pathfinding : MonoBehaviour
 {
-    private PathRequestManager requestManager;
     private Grid m_grid = null;
+    private PathRequestManager m_requestManager;
 
     private void Awake ()
     {
-        requestManager = GetComponent<PathRequestManager> ();
         m_grid = GetComponent<Grid> ();
+        m_requestManager = GetComponent<PathRequestManager> ();
     }
 
     public void StartFindPath ( Vector3 startPos, Vector3 targetPos )
@@ -76,7 +76,7 @@ public class Pathfinding : MonoBehaviour
             waypoints = RetracePath ( startNode, targetNode );
             pathSuccess = waypoints.Length > 0;
         }
-        requestManager.FinishedProcessingPath ( waypoints, pathSuccess );
+        m_requestManager.FinishedProcessingPath ( waypoints, pathSuccess );
     }
 
     private Vector3 [] RetracePath ( Node startNode, Node endNode )

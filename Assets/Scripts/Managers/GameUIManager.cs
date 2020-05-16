@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class GameUIManager : MonoBehaviour
 {
     [SerializeField]
+    private Canvas m_gameCanvas = null;
+    [SerializeField]
     private Image m_playerLivesMask = null;
     [SerializeField]
     private Text m_playerScoreText = null;
@@ -25,9 +27,12 @@ public class GameUIManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        Debug.Assert ( m_gameCanvas != null );
         Debug.Assert ( m_playerLivesMask != null );
         Debug.Assert ( m_playerScoreText != null );
         Debug.Assert ( m_playerLevelTimeText != null );
+
+        m_gameCanvas.gameObject.SetActive ( true );
     }
 
     private void UpdatePlayerStatsUI ( PlayerStats playerStats )

@@ -28,9 +28,20 @@ public class Villain : MonoBehaviour
     private void Awake ()
     {
         Debug.Assert ( m_spriteRenderer != null );
+    }
 
+    private void OnEnable ()
+    {
         GameManager.onPlayerDied += OnPlayerDied;
         GameManager.onLevelCleared += OnLevelCleared;
+        GameManager.onLevelClosed += OnLevelClosed;
+    }
+
+    private void OnDisable ()
+    {
+        GameManager.onPlayerDied -= OnPlayerDied;
+        GameManager.onLevelCleared -= OnLevelCleared;
+        GameManager.onLevelClosed -= OnLevelClosed;
     }
 
     // Start is called before the first frame update
@@ -39,7 +50,7 @@ public class Villain : MonoBehaviour
         startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
         transform.position = startingNode.WorldPosition;
         m_spriteRenderer.color = m_color;
-        
+
         m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
 
@@ -136,6 +147,11 @@ public class Villain : MonoBehaviour
     private void OnLevelCleared ()
     {
         StopPath ();
+    }
+
+    private void OnLevelClosed ()
+    {
+        Destroy ( gameObject );
     }
 
     private void OnPlayerDied ()

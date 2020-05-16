@@ -20,13 +20,17 @@ public class GameManager : MonoBehaviour
     public delegate void PlayerStatsHandler ( PlayerStats playerStats );
     public static PlayerStatsHandler onPlayerStatsChanged;
     public delegate void PlayerEventHandler ();
+    public static PlayerEventHandler onStartNewGame;
     public static PlayerEventHandler onPlayerDied;
     public static PlayerEventHandler onLevelCleared;
+    public static PlayerEventHandler onLevelClosed;
+    public static PlayerEventHandler onStartLevel;
     public delegate void ResultsHandler ( PlayerResults playerResults );
     public static ResultsHandler onShareResults;
 
     private PlayerStats m_playerStats;
     private PlayerResults m_playerResults;
+    private bool m_isContinuedGame = false;
 
     private int m_totalCoins = 0;
     private Coroutine m_startVillainsCoroutine = null;
@@ -60,65 +64,57 @@ public class GameManager : MonoBehaviour
 
     [Header ( "Scenes" )]
     [SerializeField]
-    private string m_gameSceneName = null;
-    [SerializeField]
-    private string m_resultsSceneName = null;
+    private string m_mainMenuSceneName = null;
 
     private void Awake ()
     {
-        if ( instance == null )
-        {
-            instance = this;
-        }
-        else if ( instance != this )
-        {
-            Destroy ( gameObject );
-        }
-        DontDestroyOnLoad ( gameObject );
+        Debug.Log ( "GameManager::Awake()" );
+
+        instance = this;
 
         m_timeKeeper = GetComponent<TimeKeeper> ();
 
         // Event subscriptions
         TimeKeeper.onTimerChanged += UpdatePlayerLevelTime;
-        SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+        ResultsUIManager.onContinueGame += ContinueGame;
 
-        Debug.Assert ( m_gameObjectsHolder != null );
         Debug.Assert ( m_grid != null );
+        Debug.Assert ( m_gameObjectsHolder != null );
         Debug.Assert ( m_playerPrefab != null );
-        Debug.Assert ( m_wallMaterial != null );
 
-        m_playerStats = new PlayerStats ( PLAYER_STARTING_LEVEL, PLAYER_STARTING_LIVES );
+    }
+
+    private void Start ()
+    {
         m_wallMaterial.color = m_wallNormalColor;
+
+        StartNewGame ();
     }
 
     private void OnDisable ()
     {
-        Debug.Log ( "GameManager::OnDisable()" );
+        Debug.Log ( "GameManager::OnDisable() | playerTotalScore = " + m_playerStats.ScoreTotal + " | playerLevel = " + m_playerStats.Level );
 
         // Event unsubscriptions
         TimeKeeper.onTimerChanged -= UpdatePlayerLevelTime;
-        SceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
+        ResultsUIManager.onContinueGame -= ContinueGame;
     }
 
-    // Start is called before the first frame update
-    void Start ()
+    private void StartNewGame ()
     {
-        StartNewLevel ();
-    }
-
-    private void Update ()
-    {
-        if ( Input.GetKeyDown ( KeyCode.C ) )
-        {
-            m_totalCoins = 0;
-        }
-    }
-
-    private void StartNewLevel ()
-    {
-        UpdatePlayerLevel ( m_playerStats.Level + 1 );
-
+        onStartNewGame?.Invoke ();
+        m_playerStats = new PlayerStats ( PLAYER_STARTING_LEVEL, PLAYER_STARTING_LIVES );
         onPlayerStatsChanged?.Invoke ( m_playerStats );
+
+        StartNewLevel ( m_playerStats.Level + 1 );
+    }
+
+    private void StartNewLevel ( int level )
+    {
+        onStartLevel?.Invoke ();
+
+        UpdatePlayerLevel ( level );
+        m_timeKeeper.ResetTime ();
 
         SpawnEntities ();
         PlaceCoins ();
@@ -133,6 +129,7 @@ public class GameManager : MonoBehaviour
         m_player = Instantiate ( m_playerPrefab );
         m_player.SetGrid ( m_grid );
 
+        m_villains = new List<Villain> ();
         foreach ( Villain villainPrefab in m_villainPrefabs )
         {
             Villain villainInstance = Instantiate ( villainPrefab );
@@ -143,6 +140,7 @@ public class GameManager : MonoBehaviour
 
     private void PlaceCoins ()
     {
+        m_totalCoins = 0;
         foreach ( Node node in m_grid.NodeArray )
         {
             if ( node.Type == Node.NodeType.DOT )
@@ -171,6 +169,12 @@ public class GameManager : MonoBehaviour
     private void UpdatePlayerLevel ( int newLevel )
     {
         m_playerStats.Level = Mathf.Max ( 0, newLevel );
+        onPlayerStatsChanged?.Invoke ( m_playerStats );
+    }
+
+    private void UpdatePlayerLevelTime ( int newLevelTime )
+    {
+        m_playerStats.LevelTime = Mathf.Max ( 0, newLevelTime );
         onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
@@ -208,7 +212,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Reset player
+            // Reset entities
             StartCoroutine ( StartEndingSequence ( ResetEntities ) );
         }
     }
@@ -226,7 +230,7 @@ public class GameManager : MonoBehaviour
         {
             StopCoroutine ( m_startVillainsCoroutine );
         }
-        StartCoroutine ( StartVillains () );
+        m_startVillainsCoroutine = StartCoroutine ( StartVillains () );
 
         // Resume level timer
         m_timeKeeper.StartTime ();
@@ -248,9 +252,14 @@ public class GameManager : MonoBehaviour
 
     private void GoToResults ()
     {
-        m_gameObjectsHolder.gameObject.SetActive ( false );
+        onLevelClosed?.Invoke ();
 
-        SceneManager.LoadScene ( m_resultsSceneName );
+        // Share results
+        //m_gameObjectsHolder.gameObject.SetActive ( false );
+        m_playerStats.ScoreTotal += m_playerStats.ScoreLast;
+        m_playerResults = new PlayerResults ( m_playerStats );
+        onShareResults?.Invoke ( m_playerResults );
+        m_playerStats.ScoreLast = 0;
     }
 
     #region Event Listeners
@@ -262,14 +271,20 @@ public class GameManager : MonoBehaviour
         onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
-    private void SceneManager_activeSceneChanged ( Scene fromScene, Scene toScene )
+    private void ContinueGame ()
     {
-        if ( toScene.name == m_resultsSceneName )
+        // Continue game
+        if ( m_playerResults.GameOver )
         {
-            m_playerStats.ScoreTotal += m_playerStats.ScoreLast;
-            m_playerResults = new PlayerResults ( m_playerStats );
-            onShareResults?.Invoke ( m_playerResults );
-            m_playerStats.ScoreLast = 0;
+            Debug.Log ( "isNewGame" );
+            Debug.Log ( "player total score = " + m_playerStats.ScoreTotal );
+            StartNewGame ();
+        }
+        else
+        {
+            Debug.Log ( "isContinuedGame" );
+            Debug.Log ( "player total score = " + m_playerStats.ScoreTotal );
+            StartNewLevel ( m_playerStats.Level + 1 );
         }
     }
 

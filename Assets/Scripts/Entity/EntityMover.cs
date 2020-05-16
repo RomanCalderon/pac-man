@@ -13,7 +13,7 @@ public class EntityMover : Entity
         LEFT
     }
 
-    public bool m_isMoving { get; private set; }
+    public bool IsMoving { get; private set; }
     private Directions m_direction;
     private Directions m_desiredDirection;
     private Node.NodeType [] m_invalidNodeTypes;
@@ -44,16 +44,16 @@ public class EntityMover : Entity
         {
             m_direction = m_desiredDirection;
             m_position = desiredStepNode;
-            m_isMoving = true;
+            IsMoving = true;
         }
         else if ( IsValidStep ( stepNode ) )
         {
             m_position = stepNode;
-            m_isMoving = true;
+            IsMoving = true;
         }
         else
         {
-            m_isMoving = false;
+            IsMoving = false;
         }
     }
 

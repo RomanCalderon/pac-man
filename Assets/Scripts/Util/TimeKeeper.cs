@@ -19,8 +19,9 @@ public class TimeKeeper : MonoBehaviour
             float oldValue = m_ellapsedTime;
             m_ellapsedTime = value;
             float flooredValue = Mathf.FloorToInt ( value );
+            float ceiledValue = Mathf.CeilToInt ( value );
 
-            if ( flooredValue > oldValue )
+            if ( flooredValue > oldValue || ceiledValue < oldValue )
             {
                 onTimerChanged?.Invoke ( flooredValue );
             }

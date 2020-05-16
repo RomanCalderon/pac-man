@@ -29,8 +29,20 @@ public class Player : MonoBehaviour
 
         m_boxCollider = GetComponent<BoxCollider2D> ();
 
+    }
+
+    private void OnEnable ()
+    {
         GameManager.onPlayerDied += OnPlayerDied;
         GameManager.onLevelCleared += OnLevelCleared;
+        GameManager.onLevelClosed += OnLevelClosed;
+    }
+
+    private void OnDisable ()
+    {
+        GameManager.onPlayerDied -= OnPlayerDied;
+        GameManager.onLevelCleared -= OnLevelCleared;
+        GameManager.onLevelClosed -= OnLevelClosed;
     }
 
     // Start is called before the first frame update
@@ -61,6 +73,7 @@ public class Player : MonoBehaviour
     {
         transform.position = m_startingNode.WorldPosition;
         m_playerEntity.SetCurrentPosition ( m_grid, transform.position );
+        m_playerEntity.UpdateDirection ( EntityMover.Directions.RIGHT );
         m_updatePositionCooler = 3.0f;
         m_canMove = true;
         m_isDead = false;
@@ -146,7 +159,7 @@ public class Player : MonoBehaviour
 
         if ( !m_isDead )
         {
-            m_animator.SetBool ( "IsMoving", m_playerEntity.m_isMoving && m_canMove );
+            m_animator.SetBool ( "IsMoving", m_playerEntity.IsMoving && m_canMove );
         }
     }
 
@@ -163,6 +176,11 @@ public class Player : MonoBehaviour
     {
         m_canMove = false;
         m_levelCleared = true;
+    }
+
+    private void OnLevelClosed ()
+    {
+        Destroy ( gameObject );
     }
 
     private void OnPlayerDied ()

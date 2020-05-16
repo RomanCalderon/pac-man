@@ -19,8 +19,26 @@ public class Pickup : MonoBehaviour
         m_boxCollider = GetComponent<BoxCollider2D> ();
     }
 
+    private void OnEnable ()
+    {
+        GameManager.onLevelClosed += OnLevelClosed;
+    }
+
+    private void OnDisable ()
+    {
+        GameManager.onStartNewGame -= OnLevelClosed;
+    }
+
     public PickupTypes GetPickupType ()
     {
         return m_pickupType;
+    }
+
+    private void OnLevelClosed ()
+    {
+        if ( this != null )
+        {
+            Destroy ( gameObject );
+        }
     }
 }
