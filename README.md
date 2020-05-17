@@ -2,6 +2,7 @@
 
 
 
-# Credits
-*Audio*
-[*]Trevor Lentz - Lines of Code
+## Credits
+### Audio
+- *Trevor Lentz - Lines of Code*
+- *CodeManu - (various)*
