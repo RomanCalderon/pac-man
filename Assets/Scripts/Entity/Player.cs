@@ -5,16 +5,21 @@ using UnityEngine;
 [RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Player : MonoBehaviour
 {
+    private const float POWER_UP_SCALE_MULTIPLIER = 1.4f;
+    private const float POWER_UP_SPEED_MULTIPLIER = 1.5f;
+
     [SerializeField]
     private Grid m_grid = null;
     private EntityMover m_playerEntity = null;
     [SerializeField]
     private float m_movementSpeed = 5.0f;
+    private float m_originalSpeed = 5.0f;
     private bool m_canMove = true;
     private float m_updatePositionCooler;
     private Node m_startingNode = null;
     private bool m_isDead = false;
     private bool m_levelCleared = false;
+    private bool m_isPoweredUp = false;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
@@ -28,11 +33,13 @@ public class Player : MonoBehaviour
         Debug.Assert ( m_animator != null );
 
         m_boxCollider = GetComponent<BoxCollider2D> ();
-
+        m_originalSpeed = m_movementSpeed;
     }
 
     private void OnEnable ()
     {
+        GameManager.onStartPlayerPowerup += StartPowerup;
+        GameManager.onEndPlayerPowerup += EndPowerup;
         GameManager.onPlayerDied += OnPlayerDied;
         GameManager.onLevelCleared += OnLevelCleared;
         GameManager.onLevelClosed += OnLevelClosed;
@@ -40,6 +47,8 @@ public class Player : MonoBehaviour
 
     private void OnDisable ()
     {
+        GameManager.onStartPlayerPowerup -= StartPowerup;
+        GameManager.onEndPlayerPowerup -= EndPowerup;
         GameManager.onPlayerDied -= OnPlayerDied;
         GameManager.onLevelCleared -= OnLevelCleared;
         GameManager.onLevelClosed -= OnLevelClosed;
@@ -54,6 +63,9 @@ public class Player : MonoBehaviour
         transform.position = m_startingNode.WorldPosition;
 
         m_updatePositionCooler = 3.0f;
+
+        // Reset transform scale
+        transform.localScale = Vector3.one;
     }
 
     // Update is called once per frame
@@ -79,6 +91,10 @@ public class Player : MonoBehaviour
         m_canMove = true;
         m_isDead = false;
         m_levelCleared = false;
+        m_isPoweredUp = false;
+
+        // Reset transform scale
+        transform.localScale = Vector3.one;
     }
 
     public Node GetPlayerNode ()
@@ -150,20 +166,47 @@ public class Player : MonoBehaviour
         if ( collision.tag == "Pickup" )
         {
             Pickup item = collision.GetComponent<Pickup> ();
-            if ( item == null )
-            {
-                return;
-            }
-            GameManager.instance.ConsumedCoin ();
-            AudioManager.PlaySound ( "pickup_coin", 0.3f, false );
-            Destroy ( item.gameObject );
+            PickupItem ( item );
         }
 
         if ( collision.tag == "Villain" )
         {
-            GameManager.instance.PlayerKilled ();
+            if ( m_isPoweredUp )
+            {
+                Villain villain = collision.transform.GetComponent<Villain> ();
+                villain.Killed ();
+            }
+            else
+            {
+                GameManager.instance.PlayerKilled ();
+            }
         }
     }
+
+    private void PickupItem ( Pickup item )
+    {
+        if ( item == null )
+        {
+            return;
+        }
+        switch ( item.GetPickupType () )
+        {
+            case Pickup.PickupTypes.COIN:
+                GameManager.instance.ConsumedCoin ();
+                break;
+            case Pickup.PickupTypes.POWERUP:
+            case Pickup.PickupTypes.ENERGY_DROP:
+            case Pickup.PickupTypes.EVO_DROP:
+            case Pickup.PickupTypes.LIFE_DROP:
+                GameManager.instance.ConsumedDrop ( item.GetPickupType () );
+                break;
+            default:
+                break;
+        }
+        Destroy ( item.gameObject );
+    }
+
+    #region Updaters
 
     private void AnimationUpdater ()
     {
@@ -184,6 +227,32 @@ public class Player : MonoBehaviour
         }
         m_spriteRenderer.flipX = direction == EntityMover.Directions.LEFT;
     }
+
+    #endregion
+
+    #region Powerup
+
+    private void StartPowerup ( float duration )
+    {
+        m_isPoweredUp = true;
+
+        // Scale up transform
+        transform.localScale = Vector3.one * POWER_UP_SCALE_MULTIPLIER;
+        // Increase movement speed
+        m_movementSpeed = m_originalSpeed * POWER_UP_SPEED_MULTIPLIER;
+    }
+
+    private void EndPowerup ( float duration )
+    {
+        m_isPoweredUp = false;
+
+        // Reset transform scale
+        transform.localScale = Vector3.one;
+        // Reset movement speed
+        m_movementSpeed = m_originalSpeed;
+    }
+
+    #endregion
 
     private void OnLevelCleared ()
     {

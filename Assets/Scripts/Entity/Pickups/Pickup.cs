@@ -8,11 +8,16 @@ public class Pickup : MonoBehaviour
     public enum PickupTypes
     {
         COIN,
-        EXTRA_LIFE
+        POWERUP,
+        ENERGY_DROP,
+        EVO_DROP,
+        LIFE_DROP
     }
 
-    private BoxCollider2D m_boxCollider;
+    [SerializeField]
     private PickupTypes m_pickupType = PickupTypes.COIN;
+
+    private BoxCollider2D m_boxCollider;
 
     private void Awake ()
     {

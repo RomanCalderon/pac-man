@@ -475,7 +475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_gameObjectsHolder: {fileID: 702984487}
-  m_coinsHolder: {fileID: 487809050}
+  m_coinsAndPowerupsHolder: {fileID: 487809050}
   m_grid: {fileID: 1083437873}
   m_playerPrefab: {fileID: 6740257889921309143, guid: 0b0a020ae90c3c747ac76566cdacbc4b,
     type: 3}
@@ -485,6 +485,14 @@ MonoBehaviour:
   - {fileID: 536627383067904594, guid: b5ffaf3f253d73a4e8c0d628f31d92ff, type: 3}
   - {fileID: 536627383067904594, guid: 722bfcd6e328016449ee6f36e6ffac71, type: 3}
   m_coinPrefab: {fileID: 419983883076116241, guid: 2ac49f07289d49c43b5586b20cc5d9b4,
+    type: 3}
+  m_powerupPrefab: {fileID: 3751573325640247494, guid: 4cbba123424fbfa4ea8cd96a3a573175,
+    type: 3}
+  m_energyDropPrefab: {fileID: 729033428409880424, guid: c28dd1a3561750744a8992a4e19e23b3,
+    type: 3}
+  m_evoDropPrefab: {fileID: 6317965368948796940, guid: 48d1ea407a0970842af0292fee3f8347,
+    type: 3}
+  m_lifeDropPrefab: {fileID: 9022675629298402443, guid: aaf44bd36ef6aac409a3689891ae8ff0,
     type: 3}
   m_wallMaterial: {fileID: 2100000, guid: 576e591aa5bfa8347a21573f4109d2b7, type: 2}
   m_wallNormalColor: {r: 0, g: 0, b: 1, a: 1}
@@ -1030,7 +1038,7 @@ GameObject:
   m_Component:
   - component: {fileID: 487809050}
   m_Layer: 0
-  m_Name: Coins
+  m_Name: Coins and Powerups
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

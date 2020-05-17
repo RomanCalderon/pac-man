@@ -46,11 +46,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a404b7fdb962f2b4780c173da5b15fe8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_grid: {fileID: 0}
   m_movementSpeed: 5.8
   m_pathUpdateInterval: 8
   m_spriteRenderer: {fileID: 536627384709455872}
-  m_color: {r: 1, g: 0.8, b: 0.8, a: 1}
+  m_normalSprite: {fileID: 4426713052417454097, guid: 2482cb287f6e37f42a010684e66c5a45,
+    type: 3}
+  m_deadSprite: {fileID: -6543696426149712898, guid: 2482cb287f6e37f42a010684e66c5a45,
+    type: 3}
+  m_normalColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
+  m_evasionColor: {r: 0.78699994, g: 0.6883113, b: 0.530438, a: 1}
 --- !u!61 &536627383067904595
 BoxCollider2D:
   m_ObjectHideFlags: 0

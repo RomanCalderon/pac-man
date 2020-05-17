@@ -5,7 +5,6 @@ using UnityEngine;
 [RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Villain : MonoBehaviour
 {
-    [SerializeField]
     private Grid m_grid = null;
     [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
@@ -13,17 +12,25 @@ public class Villain : MonoBehaviour
     [SerializeField, Range ( 5, 40 )]
     private float m_pathUpdateInterval = 10.0f;
     private float m_updatePathRequestCooler;
-    private Node startingNode = null;
+    private Node m_startingNode = null;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
     [SerializeField]
-    private Color m_color = Color.white;
+    private Sprite m_normalSprite = null;
+    [SerializeField]
+    private Sprite m_deadSprite = null;
+    [SerializeField]
+    private Color m_normalColor = Color.white;
+    [SerializeField]
+    private Color m_evasionColor = Color.white;
 
     private Transform m_target = null;
-    private Coroutine pathCoroutine = null;
-    private Vector3 [] path = null;
-    private int targetIndex = 0;
+    private Coroutine m_pathCoroutine = null;
+    private Vector3 [] m_path = null;
+    private int m_targetIndex = 0;
+    private bool m_isEvadingPlayer = false;
+    private bool m_isDead = false;
 
     private void Awake ()
     {
@@ -32,24 +39,29 @@ public class Villain : MonoBehaviour
 
     private void OnEnable ()
     {
-        GameManager.onPlayerDied += OnPlayerDied;
-        GameManager.onLevelCleared += OnLevelCleared;
+        GameManager.onStartPlayerPowerup += StartPlayerEvasion;
+        GameManager.onEndPlayerPowerup += EndPlayerEvasion;
+        GameManager.onPlayerDied += StopPath;
+        GameManager.onLevelCleared += StopPath;
         GameManager.onLevelClosed += OnLevelClosed;
     }
 
     private void OnDisable ()
     {
-        GameManager.onPlayerDied -= OnPlayerDied;
-        GameManager.onLevelCleared -= OnLevelCleared;
+        GameManager.onStartPlayerPowerup -= StartPlayerEvasion;
+        GameManager.onEndPlayerPowerup -= EndPlayerEvasion;
+        GameManager.onPlayerDied -= StopPath;
+        GameManager.onLevelCleared -= StopPath;
         GameManager.onLevelClosed -= OnLevelClosed;
     }
 
     // Start is called before the first frame update
     void Start ()
     {
-        startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
-        transform.position = startingNode.WorldPosition;
-        m_spriteRenderer.color = m_color;
+        m_startingNode = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN );
+        transform.position = m_startingNode.WorldPosition;
+        m_spriteRenderer.sprite = m_normalSprite;
+        m_spriteRenderer.color = m_normalColor;
 
         m_updatePathRequestCooler = ( m_pathUpdateInterval / m_movementSpeed );
     }
@@ -66,9 +78,11 @@ public class Villain : MonoBehaviour
 
     public void ResetVillain ()
     {
-        transform.position = startingNode.WorldPosition;
+        transform.position = m_startingNode.WorldPosition;
         m_target = null;
         m_canMove = true;
+        m_isEvadingPlayer = false;
+        m_isDead = false;
     }
 
     public void SetTarget ( Transform target )
@@ -83,7 +97,7 @@ public class Villain : MonoBehaviour
 
     private void MovementUpdater ()
     {
-        if ( m_target != null && m_canMove )
+        if ( m_target != null && m_canMove && !m_isDead && !m_isEvadingPlayer )
         {
             if ( m_updatePathRequestCooler > 0 )
             {
@@ -101,42 +115,43 @@ public class Villain : MonoBehaviour
     {
         if ( pathSuccessful )
         {
-            path = newPath;
-            if ( pathCoroutine != null )
+            m_path = newPath;
+            if ( m_pathCoroutine != null )
             {
-                StopCoroutine ( pathCoroutine );
+                StopCoroutine ( m_pathCoroutine );
             }
-            pathCoroutine = StartCoroutine ( FollowPath () );
+            m_pathCoroutine = StartCoroutine ( FollowPath () );
         }
     }
 
     private void StopPath ()
     {
-        if ( pathCoroutine != null )
+        if ( m_pathCoroutine != null )
         {
-            StopCoroutine ( pathCoroutine );
+            StopCoroutine ( m_pathCoroutine );
         }
         m_canMove = false;
     }
 
     private IEnumerator FollowPath ()
     {
-        targetIndex = 0;
-        Vector3 currentWaypoint = path [ 0 ];
+        m_targetIndex = 0;
+        Vector3 currentWaypoint = m_path [ 0 ];
 
         while ( m_canMove )
         {
             float waypointDistance = Vector3.Distance ( transform.position, currentWaypoint );
             if ( waypointDistance <= 0.005f )
             {
-                targetIndex++;
-                if ( targetIndex >= path.Length )
+                m_targetIndex++;
+                if ( m_targetIndex >= m_path.Length )
                 {
-                    targetIndex = 0;
-                    path = new Vector3 [ 0 ];
+                    m_targetIndex = 0;
+                    m_path = new Vector3 [ 0 ];
+                    FinishedPath ();
                     yield break;
                 }
-                currentWaypoint = path [ targetIndex ];
+                currentWaypoint = m_path [ m_targetIndex ];
             }
 
             transform.position = Vector3.MoveTowards ( transform.position, currentWaypoint, Time.deltaTime * m_movementSpeed );
@@ -144,37 +159,95 @@ public class Villain : MonoBehaviour
         }
     }
 
-    private void OnLevelCleared ()
+    private void FinishedPath ()
     {
-        StopPath ();
+        // Respawing
+        if ( m_isDead )
+        {
+            m_spriteRenderer.sprite = m_normalSprite;
+            m_canMove = true;
+            m_isDead = false;
+            if ( !m_isEvadingPlayer )
+            {
+                SetTarget ( m_target );
+            }
+        }
     }
+
+    #region Player Evasion
+
+    private void StartPlayerEvasion ( float duration )
+    {
+        m_spriteRenderer.color = m_evasionColor;
+        StopPath ();
+        m_canMove = true;
+        m_isEvadingPlayer = true;
+        Vector3 destination = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN ).WorldPosition;
+        PathRequestManager.RequestPath ( transform.position, destination, OnPathFound );
+    }
+
+    private void EndPlayerEvasion ( float duration )
+    {
+        m_isEvadingPlayer = false;
+        if ( !m_isDead )
+        {
+            m_spriteRenderer.color = m_normalColor;
+            StopPath ();
+            m_canMove = true;
+            m_isEvadingPlayer = false;
+            SetTarget ( m_target );
+        }
+    }
+
+    #endregion
+
+    #region Death
+
+    public void Killed ()
+    {
+        if ( m_isDead )
+        {
+            return;
+        }
+        m_spriteRenderer.color = m_normalColor;
+        m_spriteRenderer.sprite = m_deadSprite;
+        m_isDead = true;
+        StopPath ();
+        m_canMove = true;
+        StartCoroutine ( KillDelay () );
+    }
+
+    private IEnumerator KillDelay ()
+    {
+        yield return new WaitForSeconds ( 0.5f );
+
+        Vector3 destination = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN ).WorldPosition;
+        PathRequestManager.RequestPath ( transform.position, destination, OnPathFound );
+    }
+
+    #endregion
 
     private void OnLevelClosed ()
     {
         Destroy ( gameObject );
     }
 
-    private void OnPlayerDied ()
-    {
-        StopPath ();
-    }
-
     private void OnDrawGizmos ()
     {
-        if ( path != null )
+        if ( m_path != null )
         {
-            for ( int i = targetIndex; i < path.Length; i++ )
+            for ( int i = m_targetIndex; i < m_path.Length; i++ )
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawCube ( path [ i ], Vector3.one * 0.6f );
+                Gizmos.DrawCube ( m_path [ i ], Vector3.one * 0.6f );
 
-                if ( i == targetIndex )
+                if ( i == m_targetIndex )
                 {
-                    Gizmos.DrawLine ( transform.position, path [ i ] );
+                    Gizmos.DrawLine ( transform.position, m_path [ i ] );
                 }
                 else
                 {
-                    Gizmos.DrawLine ( path [ i - 1 ], path [ i ] );
+                    Gizmos.DrawLine ( m_path [ i - 1 ], m_path [ i ] );
                 }
             }
         }

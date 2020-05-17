@@ -102,6 +102,12 @@ public class Grid : MonoBehaviour
         return Nodes.First ( n => n.Type == nodeType );
     }
 
+    public Node GetRandomNode ( Node.NodeType nodeType )
+    {
+        List<Node> filteredNodes = Nodes.FindAll ( n => n.Type == nodeType );
+        return filteredNodes [ UnityEngine.Random.Range ( 0, filteredNodes.Count ) ];
+    }
+
     public Node NodeFromWorldPoint ( Vector3 worldPosition )
     {
         int xIndex = Mathf.RoundToInt ( ( worldPosition.x - gridData.Offset.X ) / gridData.Spacing.X );

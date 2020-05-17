@@ -14,8 +14,13 @@ public class GameManager : MonoBehaviour
     private const int PLAYER_STARTING_LEVEL = 0;
     private const int PLAYER_STARTING_SCORE = 0;
     private const int PLAYER_STARTING_LIVES = 3;
+    private const int PLAYER_MAX_LIVES = 3;
     private const int COIN_SCORE_VALUE = 100;
+    private const int POWERUP_SCORE_VALUE = 225;
+    private const int ENERGY_DROP_SCORE_VALUE = 400;
+    private const int EVO_DROP_SCORE_VALUE = 1000;
     private const int PLAYER_DEATH_STROBE_ITERATIONS = 3;
+    private const float PLAYER_POWER_UP_DURATION = 6.0f;
 
     public delegate void PlayerStatsHandler ( PlayerStats playerStats );
     public static PlayerStatsHandler onPlayerStatsChanged;
@@ -26,6 +31,9 @@ public class GameManager : MonoBehaviour
     public static PlayerEventHandler onLevelClosed;
     public static PlayerEventHandler onStartLevel;
     public static PlayerEventHandler onStartCountdown;
+    public delegate void PlayerPowerupHandler ( float duration );
+    public static PlayerPowerupHandler onStartPlayerPowerup;
+    public static PlayerPowerupHandler onEndPlayerPowerup;
     public delegate void ResultsHandler ( PlayerResults playerResults );
     public static ResultsHandler onShareResults;
 
@@ -33,12 +41,14 @@ public class GameManager : MonoBehaviour
     private PlayerResults m_playerResults;
 
     private int m_totalCoins = 0;
+
     private Coroutine m_startVillainsCoroutine = null;
+    private Coroutine m_playerPowerupCoroutine = null;
 
     [SerializeField]
     private Transform m_gameObjectsHolder = null;
     [SerializeField]
-    private Transform m_coinsHolder = null;
+    private Transform m_coinsAndPowerupsHolder = null;
 
     [SerializeField]
     private Grid m_grid = null;
@@ -50,6 +60,14 @@ public class GameManager : MonoBehaviour
     private Villain [] m_villainPrefabs = null;
     [SerializeField]
     private Transform m_coinPrefab = null;
+    [SerializeField]
+    private Transform m_powerupPrefab = null;
+    [SerializeField]
+    private Transform m_energyDropPrefab = null;
+    [SerializeField]
+    private Transform m_evoDropPrefab = null;
+    [SerializeField]
+    private Transform m_lifeDropPrefab = null;
 
     private Player m_player = null;
     private List<Villain> m_villains = new List<Villain> ();
@@ -116,7 +134,7 @@ public class GameManager : MonoBehaviour
         m_timeKeeper.ResetTime ();
 
         SpawnEntities ();
-        PlaceCoins ();
+        PlaceCoinsAndPowerups ();
         m_startVillainsCoroutine = StartCoroutine ( StartVillains () );
 
         // Start level timer
@@ -137,15 +155,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void PlaceCoins ()
+    private void PlaceCoinsAndPowerups ()
     {
         m_totalCoins = 0;
         foreach ( Node node in m_grid.NodeArray )
         {
             if ( node.Type == Node.NodeType.DOT )
             {
-                Instantiate ( m_coinPrefab, node.WorldPosition, Quaternion.identity, m_coinsHolder );
+                Instantiate ( m_coinPrefab, node.WorldPosition, Quaternion.identity, m_coinsAndPowerupsHolder );
                 m_totalCoins++;
+            }
+            else if ( node.Type == Node.NodeType.BIG_DOT )
+            {
+                Instantiate ( m_powerupPrefab, node.WorldPosition, Quaternion.identity, m_coinsAndPowerupsHolder );
             }
         }
     }
@@ -153,10 +175,38 @@ public class GameManager : MonoBehaviour
     public void ConsumedCoin ()
     {
         UpdatePlayerScore ( COIN_SCORE_VALUE );
+        AudioManager.PlaySound ( "pickup_coin", 0.3f, false );
         m_totalCoins--;
         if ( m_totalCoins <= 0 )
         {
             FinishedLevel ();
+        }
+    }
+
+    public void ConsumedDrop ( Pickup.PickupTypes pickupType )
+    {
+        Debug.Log ( "Player consumed a drop! (" + pickupType.ToString () + ")" );
+        switch ( pickupType )
+        {
+            case Pickup.PickupTypes.POWERUP:
+                UpdatePlayerScore ( POWERUP_SCORE_VALUE );
+                StartPlayerPowerup ();
+                AudioManager.PlaySound ( "powerup", 0.5f, false );
+                break;
+            case Pickup.PickupTypes.ENERGY_DROP:
+                UpdatePlayerScore ( ENERGY_DROP_SCORE_VALUE );
+                AudioManager.PlaySound ( "powerup", 0.5f, false );
+                break;
+            case Pickup.PickupTypes.EVO_DROP:
+                UpdatePlayerScore ( EVO_DROP_SCORE_VALUE );
+                AudioManager.PlaySound ( "powerup", 0.5f, false );
+                break;
+            case Pickup.PickupTypes.LIFE_DROP:
+                AddPlayerLives ( 1 );
+                AudioManager.PlaySound ( "powerup", 0.5f, false );
+                break;
+            default:
+                break;
         }
     }
 
@@ -177,10 +227,10 @@ public class GameManager : MonoBehaviour
         onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
-    private void UpdatePlayerLives ( int increment )
+    private void AddPlayerLives ( int increment )
     {
         m_playerStats.Lives += increment;
-        m_playerStats.Lives = Mathf.Max ( 0, m_playerStats.Lives );
+        m_playerStats.Lives = Mathf.Clamp ( m_playerStats.Lives, 0, PLAYER_MAX_LIVES );
         onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
 
@@ -189,6 +239,32 @@ public class GameManager : MonoBehaviour
         m_playerStats.ScoreLast += increment;
         onPlayerStatsChanged?.Invoke ( m_playerStats );
     }
+
+    #region Player Powerup
+
+    private void StartPlayerPowerup ()
+    {
+        if ( m_playerPowerupCoroutine != null )
+        {
+            StopCoroutine ( m_playerPowerupCoroutine );
+        }
+        m_playerPowerupCoroutine = StartCoroutine ( PowerupCooldown () );
+        onStartPlayerPowerup?.Invoke ( PLAYER_POWER_UP_DURATION );
+    }
+
+    private IEnumerator PowerupCooldown ()
+    {
+        yield return new WaitForSeconds ( PLAYER_POWER_UP_DURATION );
+        EndPlayerPowerup ();
+    }
+
+    private void EndPlayerPowerup ()
+    {
+        m_playerPowerupCoroutine = null;
+        onEndPlayerPowerup?.Invoke ( 0 );
+    }
+
+    #endregion
 
     public void PlayerKilled ()
     {
@@ -200,18 +276,20 @@ public class GameManager : MonoBehaviour
             StopCoroutine ( m_startVillainsCoroutine );
         }
 
-        AudioManager.PlaySound ( "player_death", 0.5f, false );
-        UpdatePlayerLives ( -1 );
+        AddPlayerLives ( -1 );
         onPlayerDied?.Invoke ();
 
         if ( m_playerStats.Lives <= 0 )
         {
             // Game over
+            AudioManager.StopAll ();
+            AudioManager.PlaySound ( "game_over", 0.8f, false );
             StartCoroutine ( StartEndingSequence ( GoToResults ) );
         }
         else
         {
             // Reset entities
+            AudioManager.PlaySound ( "player_death", 0.5f, false );
             StartCoroutine ( StartEndingSequence ( ResetEntities ) );
         }
     }
@@ -242,7 +320,6 @@ public class GameManager : MonoBehaviour
     {
         // Stop level timer
         m_timeKeeper.StopTime ();
-        AudioManager.StopAll ();
 
         if ( m_startVillainsCoroutine != null )
         {
@@ -254,10 +331,10 @@ public class GameManager : MonoBehaviour
 
     private void GoToResults ()
     {
+        AudioManager.StopAll ();
         onLevelClosed?.Invoke ();
 
         // Share results
-        //m_gameObjectsHolder.gameObject.SetActive ( false );
         m_playerStats.ScoreTotal += m_playerStats.ScoreLast;
         m_playerResults = new PlayerResults ( m_playerStats );
         onShareResults?.Invoke ( m_playerResults );
@@ -305,14 +382,14 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StartEndingSequence ( Action resultsCallback )
     {
-        yield return new WaitForSeconds ( 1.0f );
+        yield return new WaitForSeconds ( 0.5f );
 
         for ( int i = 0; i < PLAYER_DEATH_STROBE_ITERATIONS; i++ )
         {
             m_wallMaterial.color = m_wallStrobeColor;
-            yield return new WaitForSeconds ( 0.5f );
+            yield return new WaitForSeconds ( 0.4f );
             m_wallMaterial.color = m_wallNormalColor;
-            yield return new WaitForSeconds ( 0.5f );
+            yield return new WaitForSeconds ( 0.4f );
         }
         resultsCallback?.Invoke ();
     }
