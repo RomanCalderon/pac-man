@@ -31,7 +31,6 @@ public class GameManager : MonoBehaviour
 
     private PlayerStats m_playerStats;
     private PlayerResults m_playerResults;
-    private bool m_isContinuedGame = false;
 
     private int m_totalCoins = 0;
     private Coroutine m_startVillainsCoroutine = null;

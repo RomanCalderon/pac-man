@@ -118,7 +118,19 @@ public class Player : MonoBehaviour
         }
 
         Vector3 targetPosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
-        transform.position = Vector3.MoveTowards ( transform.position, targetPosition, Time.deltaTime * m_movementSpeed );
+        if ( Vector3.Distance ( transform.position, targetPosition ) > 2 )
+        {
+            // Teleport to loop node position
+            transform.position = targetPosition;
+
+            // Play teleport sfx
+            AudioManager.PlaySound ( "teleport", 0.5f, false );
+        }
+        else
+        {
+            // Normal movement to target node
+            transform.position = Vector3.MoveTowards ( transform.position, targetPosition, Time.deltaTime * m_movementSpeed );
+        }
 
         if ( m_updatePositionCooler > 0 )
         {

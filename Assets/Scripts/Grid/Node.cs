@@ -24,6 +24,7 @@ public class Node : IHeapItem<Node>
     public Node RightNode { get; private set; }
     public Node UpNode { get; private set; }
     public Node DownNode { get; private set; }
+    public Node LoopNode { get; private set; }
     public List<Node> WallConnections { get; private set; }
     public bool IsWalkable
     {
@@ -83,6 +84,15 @@ public class Node : IHeapItem<Node>
         {
             DownNode = grid [ GridXPos, GridYPos - 1 ];
         }
+    }
+
+    /// <summary>
+    /// Sets this Nodes' loop node.
+    /// </summary>
+    /// <param name="loopNode"></param>
+    public void SetLoopNode ( Node loopNode )
+    {
+        LoopNode = loopNode;
     }
 
     /// <summary>

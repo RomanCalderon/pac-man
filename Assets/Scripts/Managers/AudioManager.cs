@@ -23,6 +23,21 @@ public static class AudioManager
         }
     }
 
+    public static void PlaySound ( AudioClip clip, float volume, bool loop )
+    {
+        GameObject soundGameObject = new GameObject ( string.Format ( "Sound [{0}]", clip.name ) );
+        m_sounds.Add ( soundGameObject );
+        AudioSource audioSource = soundGameObject.AddComponent<AudioSource> ();
+        audioSource.clip = clip;
+        audioSource.volume = volume;
+        audioSource.loop = loop;
+        audioSource.Play ();
+        if ( !loop )
+        {
+            Object.Destroy ( soundGameObject, clip.length );
+        }
+    }
+
     public static void StopAll ()
     {
         foreach ( GameObject go in m_sounds )

@@ -42,14 +42,32 @@ public class EntityMover : Entity
 
         if ( IsValidStep ( desiredStepNode ) )
         {
-            m_direction = m_desiredDirection;
-            m_position = desiredStepNode;
             IsMoving = true;
+
+            // Check if desired step node is a loop node
+            if ( IsLoopStep ( desiredStepNode ) )
+            {
+                m_position = GetLoopDestination ( desiredStepNode );
+            }
+            else
+            {
+                m_direction = m_desiredDirection;
+                m_position = desiredStepNode;
+            }
         }
         else if ( IsValidStep ( stepNode ) )
         {
-            m_position = stepNode;
             IsMoving = true;
+
+            // Check if step node is a loop node
+            if ( IsLoopStep ( stepNode ) )
+            {
+                m_position = GetLoopDestination ( stepNode );
+            }
+            else
+            {
+                m_position = stepNode;
+            }
         }
         else
         {
@@ -57,7 +75,7 @@ public class EntityMover : Entity
         }
     }
 
-    public void Stop()
+    public void Stop ()
     {
         IsMoving = false;
     }
@@ -93,5 +111,19 @@ public class EntityMover : Entity
         }
         bool invalidStep = m_invalidNodeTypes.Contains ( stepNode.Type );
         return stepNode != null && !invalidStep;
+    }
+
+    private bool IsLoopStep ( Node stepNode )
+    {
+        if ( stepNode == null )
+        {
+            return false;
+        }
+        return stepNode.Type == Node.NodeType.LOOP_POINT;
+    }
+
+    private Node GetLoopDestination ( Node loopNode )
+    {
+        return loopNode.LoopNode;
     }
 }

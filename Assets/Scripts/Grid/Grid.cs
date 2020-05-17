@@ -25,6 +25,7 @@ public class Grid : MonoBehaviour
     }
 
     public List<Node> Nodes { get; private set; }
+    private List<Node> m_loopNodes = null;
 
     private void OnEnable ()
     {
@@ -42,11 +43,12 @@ public class Grid : MonoBehaviour
         {
             throw new Exception ( "Grid data is null." );
         }
-        
+
         NodeArray = new Node [ gridData.Size.X, gridData.Size.Y ];
         GridSizeX = gridData.Size.X;
         GridSizeY = gridData.Size.Y;
         Nodes = new List<Node> ();
+        m_loopNodes = new List<Node> ();
 
         for ( int x = 0; x < gridData.Size.X; x++ )
         {
@@ -66,6 +68,20 @@ public class Grid : MonoBehaviour
         foreach ( Node n in NodeArray )
         {
             n.AssignNeighbors ( NodeArray );
+            if ( n.Type == Node.NodeType.LOOP_POINT )
+            {
+                m_loopNodes.Add ( n );
+            }
+        }
+
+        // Set loop nodes
+        if ( m_loopNodes.Count >= 2 )
+        {
+            for ( int i = 1; i < m_loopNodes.Count; i++ )
+            {
+                m_loopNodes [ i ].SetLoopNode ( m_loopNodes [ i - 1 ] );
+            }
+            m_loopNodes [ 0 ].SetLoopNode ( m_loopNodes [ m_loopNodes.Count - 1 ] );
         }
 
         // Done building grid
@@ -92,5 +108,5 @@ public class Grid : MonoBehaviour
         int yIndex = Mathf.RoundToInt ( ( worldPosition.y - gridData.Offset.Y ) / gridData.Spacing.Y );
         return NodeArray [ xIndex, yIndex ];
     }
-    
+
 }
