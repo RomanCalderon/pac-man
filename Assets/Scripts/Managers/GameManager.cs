@@ -93,8 +93,6 @@ public class GameManager : MonoBehaviour
 
     private void OnDisable ()
     {
-        Debug.Log ( "GameManager::OnDisable() | playerTotalScore = " + m_playerStats.ScoreTotal + " | playerLevel = " + m_playerStats.Level );
-
         // Event unsubscriptions
         TimeKeeper.onTimerChanged -= UpdatePlayerLevelTime;
         ResultsUIManager.onContinueGame -= ContinueGame;
@@ -239,16 +237,17 @@ public class GameManager : MonoBehaviour
         onStartCountdown?.Invoke ();
     }
 
+    // Level successfully cleared
     private void FinishedLevel ()
     {
-        // Level cleared
         // Stop level timer
         m_timeKeeper.StopTime ();
+        AudioManager.StopAll ();
+
         if ( m_startVillainsCoroutine != null )
         {
             StopCoroutine ( m_startVillainsCoroutine );
         }
-
         onLevelCleared?.Invoke ();
         StartCoroutine ( StartEndingSequence ( GoToResults ) );
     }
@@ -276,17 +275,12 @@ public class GameManager : MonoBehaviour
 
     private void ContinueGame ()
     {
-        // Continue game
         if ( m_playerResults.GameOver )
         {
-            Debug.Log ( "isNewGame" );
-            Debug.Log ( "player total score = " + m_playerStats.ScoreTotal );
             StartNewGame ();
         }
         else
         {
-            Debug.Log ( "isContinuedGame" );
-            Debug.Log ( "player total score = " + m_playerStats.ScoreTotal );
             StartNewLevel ( m_playerStats.Level + 1 );
         }
     }
