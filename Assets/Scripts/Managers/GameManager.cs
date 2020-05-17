@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     public static PlayerEventHandler onLevelCleared;
     public static PlayerEventHandler onLevelClosed;
     public static PlayerEventHandler onStartLevel;
+    public static PlayerEventHandler onStartCountdown;
     public delegate void ResultsHandler ( PlayerResults playerResults );
     public static ResultsHandler onShareResults;
 
@@ -112,6 +113,7 @@ public class GameManager : MonoBehaviour
     private void StartNewLevel ( int level )
     {
         onStartLevel?.Invoke ();
+        onStartCountdown?.Invoke ();
 
         UpdatePlayerLevel ( level );
         m_timeKeeper.ResetTime ();
@@ -121,7 +123,7 @@ public class GameManager : MonoBehaviour
         m_startVillainsCoroutine = StartCoroutine ( StartVillains () );
 
         // Start level timer
-        m_timeKeeper.StartTime ();
+        m_timeKeeper.StartTime ( 3.0f );
     }
 
     private void SpawnEntities ()
@@ -201,7 +203,7 @@ public class GameManager : MonoBehaviour
             StopCoroutine ( m_startVillainsCoroutine );
         }
 
-        AudioManager.PlaySound ( "player_death", 0.5f );
+        AudioManager.PlaySound ( "player_death", 0.5f, false );
         UpdatePlayerLives ( -1 );
         onPlayerDied?.Invoke ();
 
@@ -233,7 +235,9 @@ public class GameManager : MonoBehaviour
         m_startVillainsCoroutine = StartCoroutine ( StartVillains () );
 
         // Resume level timer
-        m_timeKeeper.StartTime ();
+        m_timeKeeper.StartTime ( 3.0f );
+
+        onStartCountdown?.Invoke ();
     }
 
     private void FinishedLevel ()

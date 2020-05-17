@@ -38,9 +38,21 @@ public class TimeKeeper : MonoBehaviour
         }
     }
 
-    public void StartTime ()
+    public void StartTime ( float delay = 0.0f )
     {
-        m_isCounting = true;
+        if ( m_isCounting )
+        {
+            return;
+        }
+
+        if ( delay > 0.0f )
+        {
+            StartCoroutine ( StartDelay ( delay ) );
+        }
+        else
+        {
+            m_isCounting = true;
+        }
     }
 
     public void StopTime ()
@@ -52,5 +64,11 @@ public class TimeKeeper : MonoBehaviour
     {
         m_isCounting = false;
         m_ellapsedTime = 0.0f;
+    }
+
+    private IEnumerator StartDelay ( float delay )
+    {
+        yield return new WaitForSeconds ( delay );
+        m_isCounting = true;
     }
 }

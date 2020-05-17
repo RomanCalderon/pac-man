@@ -35,11 +35,11 @@ public class ButtonHelper : MonoBehaviour
 
     public void OnButtonHover ()
     {
-        AudioManager.PlaySound ( m_hoverClipName, m_hoverSoundVolume );
+        AudioManager.PlaySound ( m_hoverClipName, m_hoverSoundVolume, false );
     }
 
     public void OnButtonClicked ()
     {
-        AudioManager.PlaySound ( m_clickClipName, m_clickSoundVolume );
+        AudioManager.PlaySound ( m_clickClipName, m_clickSoundVolume, false );
     }
 }

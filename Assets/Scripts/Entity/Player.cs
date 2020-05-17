@@ -143,7 +143,7 @@ public class Player : MonoBehaviour
                 return;
             }
             GameManager.instance.ConsumedCoin ();
-            AudioManager.PlaySound ( "pickup_coin", 0.3f );
+            AudioManager.PlaySound ( "pickup_coin", 0.3f, false );
             Destroy ( item.gameObject );
         }
 

@@ -46,15 +46,53 @@ MonoBehaviour:
   AudioClips:
   - Name: pickup_coin
     AudioClip: {fileID: 8300000, guid: 94ae3455c1f07eb4da4bb23821c8226b, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: powerup
     AudioClip: {fileID: 8300000, guid: 1458b6ae6b7a7144a9a93a22f3800d68, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: player_death
     AudioClip: {fileID: 8300000, guid: c817f8504251c9e4a8148599200d1624, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: button_hover
     AudioClip: {fileID: 8300000, guid: 7749278fa118acf4ba56973a809bdd5e, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: button_click
     AudioClip: {fileID: 8300000, guid: 012bff9fc0a4fe24e93da3842541aacf, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: teleport
     AudioClip: {fileID: 8300000, guid: 917b1202c2f3d054f8274516d091be63, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
   - Name: game_over
     AudioClip: {fileID: 8300000, guid: 4617fe2fc5c3c7a44a1a820774137006, type: 3}
+    MixerGroup: {fileID: 2835728568230827722, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: bgm_action_1
+    AudioClip: {fileID: 8300000, guid: d1fef216a45eeef4691bf2c2836d654e, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: bgm_action_2
+    AudioClip: {fileID: 8300000, guid: faf0ce03f6d4a334b8212cafadf4c841, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: bgm_action_3
+    AudioClip: {fileID: 8300000, guid: 499d9c630ff30744ca4407c613cbfabd, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: bgm_action_4
+    AudioClip: {fileID: 8300000, guid: 31c0cf67902dd014faf94e2cae26cf76, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: bgm_action_5
+    AudioClip: {fileID: 8300000, guid: 4df3bd7507dbe8641877cbe4c5236517, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
+  - Name: lines_of_code
+    AudioClip: {fileID: 8300000, guid: dc4d07016373ca8478ee8c8bdf30428c, type: 3}
+    MixerGroup: {fileID: -6464035233811619532, guid: 0e11de741ef970142bd72778eb7830c4,
+      type: 2}
