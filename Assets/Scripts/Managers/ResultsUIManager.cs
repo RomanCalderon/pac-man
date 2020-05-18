@@ -122,8 +122,7 @@ public class ResultsUIManager : MonoBehaviour
     {
         onContinueGame?.Invoke ();
     }
-
-
+    
     #region IEnumerators
 
     private IEnumerator DisplayLastRoundStats ()
@@ -204,8 +203,7 @@ public class ResultsUIManager : MonoBehaviour
                 yield return new WaitForSeconds ( UPDATE_STAT_INTERVAL_WAIT_TIME );
             }
         }
-        statValue = newStat;
-        textElement.text = statValue.ToString () + suffix;
+        textElement.text = newStat.ToString () + suffix;
     }
 
     #endregion
