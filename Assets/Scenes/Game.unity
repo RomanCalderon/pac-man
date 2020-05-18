@@ -476,8 +476,8 @@ GameObject:
   - component: {fileID: 108172656}
   - component: {fileID: 108172655}
   - component: {fileID: 108172658}
-  - component: {fileID: 108172657}
   - component: {fileID: 108172659}
+  - component: {fileID: 108172657}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -513,7 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_gameObjectsHolder: {fileID: 702984487}
-  m_coinsAndPowerupsHolder: {fileID: 487809050}
+  m_pickupsHolder: {fileID: 487809050}
   m_grid: {fileID: 1083437873}
   m_playerPrefab: {fileID: 6740257889921309143, guid: 0b0a020ae90c3c747ac76566cdacbc4b,
     type: 3}
@@ -1111,7 +1111,7 @@ GameObject:
   m_Component:
   - component: {fileID: 487809050}
   m_Layer: 0
-  m_Name: Coins and Powerups
+  m_Name: Pickups
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

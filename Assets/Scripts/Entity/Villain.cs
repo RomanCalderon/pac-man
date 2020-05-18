@@ -5,6 +5,8 @@ using UnityEngine;
 [RequireComponent ( typeof ( BoxCollider2D ) )]
 public class Villain : MonoBehaviour
 {
+    private const float DEATH_MOVE_DELAY = 1.0f;
+
     private Grid m_grid = null;
     [SerializeField, Range ( 1.0f, 10.0f )]
     private float m_movementSpeed = 5.0f;
@@ -97,6 +99,12 @@ public class Villain : MonoBehaviour
 
     private void MovementUpdater ()
     {
+        if ( m_pathCoroutine != null && GameManager.IsLevelCleared )
+        {
+            StopCoroutine ( m_pathCoroutine );
+            m_pathCoroutine = null;
+        }
+
         if ( m_target != null && m_canMove && !m_isDead && !m_isEvadingPlayer )
         {
             if ( m_updatePathRequestCooler > 0 )
@@ -219,7 +227,7 @@ public class Villain : MonoBehaviour
 
     private IEnumerator KillDelay ()
     {
-        yield return new WaitForSeconds ( 0.5f );
+        yield return new WaitForSeconds ( DEATH_MOVE_DELAY );
 
         Vector3 destination = m_grid.GetNode ( Node.NodeType.VILLAIN_SPAWN ).WorldPosition;
         PathRequestManager.RequestPath ( transform.position, destination, OnPathFound );

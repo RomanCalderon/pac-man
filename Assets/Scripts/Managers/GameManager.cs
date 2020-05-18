@@ -37,6 +37,8 @@ public class GameManager : MonoBehaviour
     public delegate void ResultsHandler ( PlayerResults playerResults );
     public static ResultsHandler onShareResults;
 
+    public static bool IsLevelCleared = false;
+
     private PlayerStats m_playerStats;
     private PlayerResults m_playerResults;
 
@@ -48,7 +50,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Transform m_gameObjectsHolder = null;
     [SerializeField]
-    private Transform m_coinsAndPowerupsHolder = null;
+    private Transform m_pickupsHolder = null;
 
     [SerializeField]
     private Grid m_grid = null;
@@ -127,6 +129,8 @@ public class GameManager : MonoBehaviour
 
     private void StartNewLevel ( int level )
     {
+        IsLevelCleared = false;
+        
         onStartLevel?.Invoke ();
         onStartCountdown?.Invoke ();
 
@@ -162,12 +166,12 @@ public class GameManager : MonoBehaviour
         {
             if ( node.Type == Node.NodeType.DOT )
             {
-                Instantiate ( m_coinPrefab, node.WorldPosition, Quaternion.identity, m_coinsAndPowerupsHolder );
+                Instantiate ( m_coinPrefab, node.WorldPosition, Quaternion.identity, m_pickupsHolder );
                 m_totalCoins++;
             }
             else if ( node.Type == Node.NodeType.BIG_DOT )
             {
-                Instantiate ( m_powerupPrefab, node.WorldPosition, Quaternion.identity, m_coinsAndPowerupsHolder );
+                Instantiate ( m_powerupPrefab, node.WorldPosition, Quaternion.identity, m_pickupsHolder );
             }
         }
     }
@@ -325,6 +329,7 @@ public class GameManager : MonoBehaviour
         {
             StopCoroutine ( m_startVillainsCoroutine );
         }
+        IsLevelCleared = true;
         onLevelCleared?.Invoke ();
         StartCoroutine ( StartEndingSequence ( GoToResults ) );
     }
