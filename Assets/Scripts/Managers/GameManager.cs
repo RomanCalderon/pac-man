@@ -402,6 +402,7 @@ public class GameManager : MonoBehaviour
     #endregion
 }
 
+[Serializable]
 public struct PlayerStats
 {
     public int Level;

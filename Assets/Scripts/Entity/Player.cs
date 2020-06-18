@@ -7,8 +7,9 @@ public class Player : MonoBehaviour
 {
     private const float POWER_UP_SCALE_MULTIPLIER = 1.4f;
     private const float POWER_UP_SPEED_MULTIPLIER = 1.5f;
+    private const int DASH_DISTANCE = 10;
+    private const float DASH_SPEED = 60;
 
-    [SerializeField]
     private Grid m_grid = null;
     private EntityMover m_playerEntity = null;
     [SerializeField]
@@ -20,6 +21,10 @@ public class Player : MonoBehaviour
     private bool m_isDead = false;
     private bool m_levelCleared = false;
     private bool m_isPoweredUp = false;
+    [SerializeField]
+    private KeyCode m_actionKey = KeyCode.Space;
+    private bool m_hasEnergy = false;
+    private bool m_isDashing = false;
 
     [SerializeField]
     private SpriteRenderer m_spriteRenderer = null;
@@ -74,6 +79,18 @@ public class Player : MonoBehaviour
         MovementInput ();
         MovementUpdater ();
         AnimationUpdater ();
+        ActionInput ();
+
+        if ( m_isDashing )
+        {
+            Vector3 targetPosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
+            float dashEndDistance = Vector3.Distance ( transform.position, targetPosition );
+            if ( dashEndDistance <= 1 )
+            {
+                m_movementSpeed = m_originalSpeed;
+                m_isDashing = false;
+            }
+        }
     }
 
     public void SetGrid ( Grid grid )
@@ -81,6 +98,7 @@ public class Player : MonoBehaviour
         m_grid = grid;
     }
 
+    // Resets the player to the starting position, along with the relevant traits
     public void ResetPlayer ()
     {
         transform.position = m_startingNode.WorldPosition;
@@ -134,7 +152,7 @@ public class Player : MonoBehaviour
         }
 
         Vector3 targetPosition = m_playerEntity.GetCurrentPosition ().WorldPosition;
-        if ( Vector3.Distance ( transform.position, targetPosition ) > 2 )
+        if ( Vector3.Distance ( transform.position, targetPosition ) > 2 && !m_isDashing )
         {
             // Teleport to loop node position
             transform.position = targetPosition;
@@ -195,7 +213,12 @@ public class Player : MonoBehaviour
                 GameManager.instance.ConsumedCoin ();
                 break;
             case Pickup.PickupTypes.POWERUP:
+                GameManager.instance.ConsumedDrop ( item.GetPickupType () );
+                break;
             case Pickup.PickupTypes.ENERGY_DROP:
+                m_hasEnergy = true;
+                GameManager.instance.ConsumedDrop ( item.GetPickupType () );
+                break;
             case Pickup.PickupTypes.EVO_DROP:
             case Pickup.PickupTypes.LIFE_DROP:
                 GameManager.instance.ConsumedDrop ( item.GetPickupType () );
@@ -250,6 +273,34 @@ public class Player : MonoBehaviour
         transform.localScale = Vector3.one;
         // Reset movement speed
         m_movementSpeed = m_originalSpeed;
+    }
+
+    #endregion
+
+    #region Actions
+
+    private void ActionInput ()
+    {
+        if ( Input.GetKeyDown ( m_actionKey ) )
+        {
+            Dash ();
+        }
+    }
+
+    private void Dash ()
+    {
+        if ( !m_hasEnergy )
+        {
+            return;
+        }
+        m_hasEnergy = false;
+
+        m_movementSpeed = DASH_SPEED;
+        for ( int i = 0; i < DASH_DISTANCE; i++ )
+        {
+            m_playerEntity.Move ();
+        }
+        m_isDashing = true;
     }
 
     #endregion

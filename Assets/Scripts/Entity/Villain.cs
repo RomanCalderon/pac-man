@@ -6,6 +6,7 @@ using UnityEngine;
 public class Villain : MonoBehaviour
 {
     private const float DEATH_MOVE_DELAY = 1.0f;
+    private const float DEATH_SFX_VOLUME = 0.6f;
 
     private Grid m_grid = null;
     [SerializeField, Range ( 1.0f, 10.0f )]
@@ -223,6 +224,9 @@ public class Villain : MonoBehaviour
         StopPath ();
         m_canMove = true;
         StartCoroutine ( KillDelay () );
+
+        // Play SFX
+        AudioManager.PlaySound ( GameAssets.Instance.GetAudioClip ( "powerup" ), DEATH_SFX_VOLUME, false );
     }
 
     private IEnumerator KillDelay ()
